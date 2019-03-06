@@ -36,13 +36,34 @@ private:
 public:
   TextModel (void);
   TextModel (istream& stream);
-  TextModel (shared_ptr<shared_ptr<const Page>>& pages, int pageCount);
 
   shared_ptr<const TextModel> insert (const Cursor& cursor, const string& text) const;
   shared_ptr<const string> lineAt (int line) const;
   int lineCount (void) const;
 
 private:
+  class Builder {
+  private:
+    shared_ptr<shared_ptr<const Page>> m_pages;
+    shared_ptr<const Page> m_editPage;
+    shared_ptr<const Page> m_setPage;
+    int m_editPageIndex;
+    int m_pageCount;
+    int m_lineCount;
+    int m_setIndex;
+    bool m_addPage;
+
+  public:
+    Builder (void);
+
+    Builder& addPage (int index, const shared_ptr<const Page>& page);
+    shared_ptr<const TextModel> build (void);
+    Builder& editPage (int index, shared_ptr<const Page>& page);
+    Builder& lineCount (int lineCount);
+    Builder& pages (const shared_ptr<shared_ptr<const Page>>& pages, int pageCount);
+    Builder& setPage (int index, const shared_ptr<const Page>& page);
+  };
+
   class PageInfo {
   public:
     const int index;
