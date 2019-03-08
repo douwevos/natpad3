@@ -32,10 +32,8 @@ TextModel::Builder& TextModel::Builder::addPage (int index, const shared_ptr<con
 }
 
 shared_ptr<const TextModel> TextModel::Builder::build (void) {
-  if (m_pages.use_count () == 0)
-    throw std::runtime_error ("No pages set.");
   if (m_setIndex < NO_INDEX || m_setIndex > m_pageCount)
-    throw std::out_of_range ("Cannot set or add a page at the specified index.");
+    throw std::out_of_range ("TextModel::Builder::build: Cannot set or add a page at the specified index.");
   if (m_setIndex == m_pageCount)
     m_addPage = true;
 
@@ -83,7 +81,7 @@ TextModel::Builder& TextModel::Builder::pages (const shared_ptr<shared_ptr<const
 
 TextModel::Builder& TextModel::Builder::setPage (int index, const shared_ptr<const Page>& page) {
   if (m_setIndex != NO_INDEX)
-    throw std::runtime_error ("Modified page already set.");
+    throw std::runtime_error ("TextModel::Builder::setPage: Modified page already set.");
   m_setIndex = index;
   m_setPage = page;
   return *this;
