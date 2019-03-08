@@ -72,6 +72,8 @@ private:
     PageInfo (int index, int firstLine);
   };
 
+  const shared_ptr<const Page>& pageAt (int index) const;
+  int pageCount (void) const;
   PageInfo pageInfoForLine (int line) const;
 };
 
