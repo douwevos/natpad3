@@ -2,11 +2,11 @@ exename := test.elf
 
 cc := c++
 objdir := objs
-includedirs := -I../include
+includedirs := -I../include -I../../testutils/include
 compiler_flags := -std=c++11
 
 libdir := -L../../lib
-libs := -lnatpad-core
+libs := -lnatpad-core -ltestutils
 link_flags := #-s
 
 files := $(shell find . -name "*.cpp")
