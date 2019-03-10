@@ -23,7 +23,7 @@
 
 using Test = void (StringUtilsTest::*) (void);
 
-const Test tests[] = {
+static const Test tests[] = {
   &StringUtilsTest::testGetLines
 };
 
