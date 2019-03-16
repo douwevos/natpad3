@@ -22,6 +22,7 @@
 #include <testutils/TestCase.h>
 
 #undef assertEquals
+#undef assertTrue
 
 TestCase::TestCase (const char* testClassName) : m_testClassName (testClassName) {
 }
@@ -64,6 +65,13 @@ void TestCase::assertEquals (int lineNo, const string& expected, const string& a
 void TestCase::assertEquals (int lineNo, const void* expected, const void* actual) {
   if (expected != actual) {
     string str = "assertion failed (line " + std::to_string (lineNo) + "): pointers are not equal";
+    throw std::runtime_error (str);
+  }
+}
+
+void TestCase::assertTrue (int lineNo, bool condition) {
+  if (!condition) {
+    string str = "assertion failed (line " + std::to_string (lineNo) + ")";
     throw std::runtime_error (str);
   }
 }

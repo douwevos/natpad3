@@ -48,8 +48,10 @@ protected:
   void assertEquals (int lineNo, int expected, int actual);
   void assertEquals (int lineNo, const string& expected, const string& actual);
   void assertEquals (int lineNo, const void* expected, const void* actual);
+  void assertTrue (int lineNo, bool condition);
 };
 
 #define assertEquals(expected, actual) assertEquals (__LINE__, expected, actual)
+#define assertTrue(condition) assertTrue (__LINE__, condition)
 
 #endif
