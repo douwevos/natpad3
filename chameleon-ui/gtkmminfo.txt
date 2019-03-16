@@ -1,0 +1,9 @@
+Gtkmm 3:
+Tutorial: https://developer.gnome.org/gtkmm-tutorial/stable/
+API documentatie: https://developer.gnome.org/gtkmm/3.6/
+
+Soms kun je sommige klassen niet vinden in de documentatie (zoals Glib::ustring),
+maar dan kun je de header waarschijnlijk makkelijk opsporen in de 'juiste'
+directory. Voor deze klasse ben in gaan kijken in /usr/include/glibmm-2.4/glibmm
+vanwege de namespace Glib.  Daar heb ik de header ook gevonden, met goede
+documentatie erin.

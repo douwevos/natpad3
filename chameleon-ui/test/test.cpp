@@ -1,11 +1,17 @@
-#include <cstdio>
-#include <gtkmm.h>
+#include <gtkmm/application.h>
+#include <gtkmm/window.h>
+#include "Tekstoppervlak.h"
 
 int main (int argc, char** args, char** env) {
-  auto app = Gtk::Application::create (argc, args, "org.gtkmm.examples.base");
+  Glib::RefPtr<Gtk::Application> app = Gtk::Application::create (argc, args);
 
   Gtk::Window window;
-  window.set_default_size (200, 200);
+  window.set_default_size (640, 480);
+  window.set_title ("Tekst tekenen");
+
+  Tekstoppervlak area;
+  window.add (area);
+  area.show ();
 
   return app->run (window);
 }
