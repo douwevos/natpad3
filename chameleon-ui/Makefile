@@ -2,7 +2,7 @@ libname := libchameleon-ui.a
 
 cc := c++ #On Mac OS X this should be: clang++
 objdir := objs
-includedirs := -Iinclude -I../core/include
+includedirs := -Iinclude -I../chameleon-model/include
 compiler_flags := -std=c++11 #-pthread
 libdir := ../lib
 

@@ -1,4 +1,4 @@
-libname := libnatpad-core.a
+libname := libchameleon-model.a
 
 cc := c++ #On Mac OS X this should be: clang++
 objdir := objs

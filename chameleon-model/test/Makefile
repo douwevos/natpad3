@@ -6,7 +6,7 @@ includedirs := -I../include -I../../testutils/include
 compiler_flags := -std=c++11
 
 libdir := -L../../lib
-libs := -lnatpad-core -ltestutils
+libs := -lchameleon-model -ltestutils
 link_flags := #-s
 
 files := $(shell find . -name "*.cpp")
