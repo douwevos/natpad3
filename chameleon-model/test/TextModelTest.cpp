@@ -59,6 +59,15 @@ static string createLines (int count) {
   return result;
 }
 
+static shared_ptr<const Page> createPage (int lineCount, int index = 0) {
+  Page::Builder builder;
+  builder.prepareBuildingNewPage (lineCount);
+  for (int i = 0; i < lineCount; ++i) {
+    builder.addLine (shared_ptr<const string> (new string (createLine (index++))));
+  }
+  return builder.build ();
+}
+
 TextModelTest::TextModelTest (void) : TestCase ("TextModelTest") {
 }
 
@@ -166,15 +175,77 @@ void TextModelTest::testConstructor_istream_moreThanPreferredPageSizeLines (void
 void TextModelTest::testPageAt (void) {
   setTestName (__func__);
 
-  /* TODO: Implement.  */
-  assertTrue (false);
+  shared_ptr<const Page>* pages = new shared_ptr<const Page>[4];
+  for (int i = 0; i < 4; ++i) {
+    pages[i].reset (new Page);
+  }
+
+  TextModel model;
+  model.m_pages.reset (pages, [] (shared_ptr<const Page>* array) { delete[] array; });
+  model.m_pageCount = 4;
+  model.m_editPage.reset (new Page);
+  model.m_editPageIndex = 2;
+
+  for (int i = 0; i < 4; ++i) {
+    if (i != 2)
+      assertEquals (pages[i].get (), model.pageAt (i).get ());
+    else
+      assertEquals (model.m_editPage.get (), model.pageAt (i).get ());
+  }
 }
 
 void TextModelTest::testPageInfoForLine (void) {
   setTestName (__func__);
 
-  /* TODO: Implement.  */
-  assertTrue (false);
+  int lc[] = {Page::preferredSize / 3, Page::preferredSize / 2, Page::preferredSize - 1};
+
+  shared_ptr<const Page>* pages = new shared_ptr<const Page>[3];
+  for (int i = 0; i < 3; ++i) {
+    pages[i] = createPage (lc[i]);
+  }
+
+  TextModel model;
+  model.m_pages.reset (pages, [] (shared_ptr<const Page>* array) { delete[] array; });
+  model.m_pageCount = 3;
+  model.m_lineCount = lc[0] + lc[1] + lc[2];
+
+  for (int i = 0; i <= model.m_lineCount; ++i) {
+    TextModel::PageInfo info = model.pageInfoForLine (i);
+    if (i < lc[0]) {
+      assertEquals (0, info.index);
+      assertEquals (0, info.firstLine);
+    } else if (i < lc[0] + lc[1]) {
+      assertEquals (1, info.index);
+      assertEquals (lc[0], info.firstLine);
+    } else {
+      assertEquals (2, info.index);
+      assertEquals (lc[0] + lc[1], info.firstLine);
+    }
+  }
+
+  model.m_editPage = createPage (Page::preferredSize);
+  model.m_editPageIndex = 3;
+  model.m_lineCount += Page::preferredSize;
+  for (int i = 0; i < model.m_lineCount; ++i) {
+    TextModel::PageInfo info = model.pageInfoForLine (i);
+    if (i < lc[0]) {
+      assertEquals (0, info.index);
+      assertEquals (0, info.firstLine);
+    } else if (i < lc[0] + lc[1]) {
+      assertEquals (1, info.index);
+      assertEquals (lc[0], info.firstLine);
+    } else if (i < lc[0] + lc[1] + lc[2]) {
+      assertEquals (2, info.index);
+      assertEquals (lc[0] + lc[1], info.firstLine);
+    } else {
+      assertEquals (3, info.index);
+      assertEquals (lc[0] + lc[1] + lc[2], info.firstLine);
+    }
+  }
+
+  TextModel::PageInfo info = model.pageInfoForLine (model.m_lineCount);
+  assertEquals (4, info.index);
+  assertEquals (model.m_lineCount, info.firstLine);
 }
 
 void TextModelTest::testLineAt (void) {
