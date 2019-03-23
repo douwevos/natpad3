@@ -7,7 +7,7 @@ compiler_flags := -std=c++11 -pthread
 
 libdir := -L../../lib
 libs := -lchameleon-model `pkg-config gtkmm-3.0 --libs-only-l` #-ltestutils
-#libs := -lchameleon-ui -lchameleon-model `pkg-config gtkmm-3.0 --libs-only-l` #-ltestutils
+libs := -lchameleon-ui -lchameleon-model `pkg-config gtkmm-3.0 --libs-only-l` #-ltestutils
 link_flags := #-s
 
 files := $(shell find . -name "*.cpp")
