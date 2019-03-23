@@ -10,6 +10,7 @@
 #include <glibmm.h>
 #include <glibmm/objectbase.h>
 
+/*
 class MyProperty : public Glib::Property<Glib::RefPtr<Gtk::Adjustment>> {
 private:
   ChameleonEditor& m_editor;
@@ -19,6 +20,27 @@ public:
   MyProperty& operator= (const Glib::RefPtr<Gtk::Adjustment>& data);
   void set_value (const Glib::RefPtr<Gtk::Adjustment>& data) override;
 };
+Die klasse extenden is een slecht idee, omdat set_value niet virtual is, volgens mij.
+
+Je kunt het ook zo proberen:
+Op Glib::Property zit een functie get_proxy:
+
+hadjustment_.get_proxy ().signal_changed ().connect (sigc::ptr_fun (&onPropertyChanged));
+
+En dan een functie maken:
+void onPropertyChanged (void) {
+  ...
+}
+
+Ik weet niet of je ook argumenten mee kunt laten geven, dit vond ik op:
+https://developer.gnome.org/gtkmm-tutorial/stable/sec-connecting-signal-handlers.html.en
+
+Laat maar even weten hoe het lukt, ik ben wel benieuwd.
+http://manual.freeshell.org/glibmm-2.4/reference/html/classGlib_1_1SignalProxyProperty.html
+(je hebt ook een sig::mem_fun).
+http://manual.freeshell.org/libsigc++-2.0/reference/html/group__ptr__fun.html#gada8b678665c14dc85eb32d25b7299465
+
+*/
 
 ChameleonEditorBase::ChameleonEditorBase()
 {
