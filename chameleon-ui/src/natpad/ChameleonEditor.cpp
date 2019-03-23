@@ -10,9 +10,18 @@
 #include <glibmm.h>
 #include <glibmm/objectbase.h>
 
+class MyProperty : public Glib::Property<Glib::RefPtr<Gtk::Adjustment>> {
+private:
+  ChameleonEditor& m_editor;
+
+public:
+  MyProperty (ChameleonEditor& editor, const Glib::ustring& name, const Glib::RefPtr<Gtk::Adjustment>& default_value);
+  MyProperty& operator= (const Glib::RefPtr<Gtk::Adjustment>& data);
+  void set_value (const Glib::RefPtr<Gtk::Adjustment>& data) override;
+};
+
 ChameleonEditorBase::ChameleonEditorBase()
 {
-
 }
 
 
