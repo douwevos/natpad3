@@ -18,11 +18,12 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <cstdio>
-#include <stdexcept>
+#include <testutils/AssertionException.h>
 #include <testutils/TestCase.h>
 
 #undef assertEquals
 #undef assertTrue
+#undef fail
 
 TestCase::TestCase (const char* testClassName) : m_testClassName (testClassName) {
 }
@@ -49,7 +50,7 @@ void TestCase::assertEquals (int lineNo, int expected, int actual) {
     string str = "assertion failed (line " + std::to_string (lineNo);
     str += "):\nexpected: " + std::to_string (expected);
     str += "\n  actual: " +  std::to_string (actual);
-    throw std::runtime_error (str);
+    throw AssertionException (str);
   }
 }
 
@@ -58,22 +59,31 @@ void TestCase::assertEquals (int lineNo, const string& expected, const string& a
     string str = "assertion failed (line " + std::to_string (lineNo);
     str += "):\nexpected: " + expected;
     str += "\n  actual: " +  actual;
-    throw std::runtime_error (str);
+    throw AssertionException (str);
   }
 }
 
 void TestCase::assertEquals (int lineNo, const void* expected, const void* actual) {
   if (expected != actual) {
     string str = "assertion failed (line " + std::to_string (lineNo) + "): pointers are not equal";
-    throw std::runtime_error (str);
+    throw AssertionException (str);
   }
 }
 
 void TestCase::assertTrue (int lineNo, bool condition) {
   if (!condition) {
     string str = "assertion failed (line " + std::to_string (lineNo) + ")";
-    throw std::runtime_error (str);
+    throw AssertionException (str);
   }
+}
+
+void TestCase::fail (int lineNo, const string& message) {
+  string str = "failed (line " + std::to_string (lineNo) + ")";
+  if (!message.empty ()) {
+    str += ": ";
+    str += message;
+  }
+  throw AssertionException (str);
 }
 
 void TestCase::setTestName (const char* name) {
