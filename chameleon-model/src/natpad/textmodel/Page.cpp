@@ -28,39 +28,54 @@ Page::Page (void) : m_lineCount (0), m_editLineIndex (NO_INDEX) {
 shared_ptr<const Page> Page::insert (Cursor cursor, const string& text) const {
   validateCursorForInsert (cursor);
 
-  shared_ptr<string> line;
-  if (cursor.line == m_lineCount) {
-    line.reset (new string (text));
-  } else {
-    line.reset (new string (*m_lines.get ()[cursor.line]));
-    line->insert (cursor.column, text);
-  }
   Page::Builder builder;
-  return builder.lines (m_lines, m_lineCount).setLine (cursor.line, line).build ();
+  shared_ptr<string> line;
+  if (cursor.line == m_editLineIndex) {
+    line.reset (new string (*m_editLine));
+    line->insert (cursor.column, text);
+  } else {
+    if (cursor.line >= m_lineCount) {
+      line.reset (new string (text));
+    } else {
+      line.reset (new string (*m_lines.get ()[cursor.line]));
+      line->insert (cursor.column, text);
+    }
+    if (m_editLineIndex != NO_INDEX) {
+      builder.setLine (m_editLineIndex, m_editLine);
+    }
+  }
+  return builder.editLine (cursor.line, line).lines (m_lines, m_lineCount).build ();
 }
 
 shared_ptr<const string> Page::lineAt (int line) const {
-  if (line < 0 || line >= m_lineCount)
+  if (line < 0 || line >= lineCount ())
     throw std::out_of_range ("Specified line number out of range.");
 
+  if (line == m_editLineIndex)
+    return m_editLine;
   return m_lines.get ()[line];
 }
 
 int Page::lineCount (void) const {
-  return m_lineCount;
+  return m_lineCount + (m_editLineIndex == m_lineCount);
 }
 
 void Page::validateCursorForInsert (const Cursor& cursor) const {
-  if (cursor.line < 0 || cursor.line > m_lineCount)
+  int lc = lineCount ();
+  if (cursor.line < 0 || cursor.line > lc)
     throw std::out_of_range ("Cursor line out of range.");
 
-  if (cursor.line == m_lineCount) {
+  if (cursor.line == lc) {
     if (cursor.column != 0)
       throw std::out_of_range ("Cursor column out of range.");
     return;
   }
 
-  int lineLength = m_lines.get ()[cursor.line]->length ();
+  int lineLength;
+  if (cursor.line == m_editLineIndex)
+    lineLength = m_editLine->length ();
+  else
+    lineLength = m_lines.get ()[cursor.line]->length ();
   if (cursor.column < 0 || cursor.column > lineLength)
     throw std::out_of_range ("Cursor column out of range.");
 }

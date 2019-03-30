@@ -68,48 +68,36 @@ shared_ptr<const TextModel> TextModel::insert (const Cursor& cursor, const strin
     throw std::out_of_range ("Cursor line out of range.");
 
   TextModel::Builder builder;
-  if (pageCount () == 0) {
+  TextModel::PageInfo pageInfo = pageInfoForLine (cursor.line);
 
-    const Page editPage;
-    shared_ptr<const Page> newEditPage = editPage.insert (cursor, text);
-    builder.editPage (0, newEditPage)
-           .lineCount (newEditPage->lineCount ());
+  int oldLC;
+  shared_ptr<const Page> newEditPage;
+
+  if (pageInfo.index == m_editPageIndex) {
+
+    oldLC = m_editPage->lineCount ();
+    newEditPage = m_editPage->insert (Cursor (cursor.line - pageInfo.firstLine, cursor.column), text);
 
   } else {
 
-    TextModel::PageInfo pageInfo = pageInfoForLine (cursor.line);
-
-    if (m_editPageIndex == pageInfo.index) {
-
-      int oldLC = m_editPage->lineCount ();
-      shared_ptr<const Page> newEditPage = m_editPage->insert (Cursor (cursor.line - pageInfo.firstLine, cursor.column), text);
-      builder.editPage (m_editPageIndex, newEditPage)
-             .lineCount (m_lineCount + newEditPage->lineCount () - oldLC);
-      /* TODO: Liever nieuwe pagina inserten indien deze editPage te groot wordt?  */
-
+    if (pageInfo.index >= m_pageCount) {
+      oldLC = 0;
+      const Page editPage;
+      newEditPage = editPage.insert (Cursor (cursor.line - pageInfo.firstLine, cursor.column), text);
     } else {
-
-      int oldLC;
-      shared_ptr<const Page> newEditPage;
-      if (pageInfo.index >= m_pageCount) {
-        oldLC = 0;
-        const Page editPage;
-        newEditPage = editPage.insert (Cursor (cursor.line - pageInfo.firstLine, cursor.column), text);
-      } else {
-        oldLC = m_pages.get ()[pageInfo.index]->lineCount ();
-        newEditPage = m_pages.get ()[pageInfo.index]->insert (Cursor (cursor.line - pageInfo.firstLine, cursor.column), text);
-      }
-      if (m_editPageIndex != NO_INDEX) {
-        builder.setPage (m_editPageIndex, m_editPage);
-      }
-      builder.editPage (pageInfo.index, newEditPage)
-             .lineCount (m_lineCount + newEditPage->lineCount () - oldLC);
-
+      oldLC = m_pages.get ()[pageInfo.index]->lineCount ();
+      newEditPage = m_pages.get ()[pageInfo.index]->insert (Cursor (cursor.line - pageInfo.firstLine, cursor.column), text);
+    }
+    if (m_editPageIndex != NO_INDEX) {
+      builder.setPage (m_editPageIndex, m_editPage);
     }
 
   }
 
-  return builder.pages (m_pages, m_pageCount).build ();
+  return builder.pages (m_pages, m_pageCount)
+                .editPage (pageInfo.index, newEditPage)
+                .lineCount (m_lineCount + newEditPage->lineCount () - oldLC)
+                .build ();
 }
 
 shared_ptr<const string> TextModel::lineAt (int line) const {
