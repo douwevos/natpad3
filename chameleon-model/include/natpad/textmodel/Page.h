@@ -30,13 +30,14 @@ using std::string;
 class Page {
 private:
   shared_ptr<shared_ptr<const string>> m_lines;
+  shared_ptr<const string> m_editLine;
+  int m_editLineIndex;
   int m_lineCount;
 
 public:
   static const int preferredSize = 1024;
 
   Page (void);
-  Page (shared_ptr<shared_ptr<const string>>& lines, int lineCount);
 
   shared_ptr<const Page> insert (Cursor cursor, const string& text) const;
   shared_ptr<const string> lineAt (int line) const;
@@ -44,26 +45,32 @@ public:
 
   class Builder {
   private:
-    Page* m_page;
+    shared_ptr<shared_ptr<const string>> m_lines;
+    shared_ptr<const string> m_editLine;
+    shared_ptr<const string> m_setLine;
+    int m_editLineIndex;
     int m_lineCount;
-    int m_index;
+    int m_setIndex;
+    bool m_addLine;
 
   public:
     Builder (void);
     Builder (const Builder&) = delete;
     Builder (Builder&&) = delete;
-    ~Builder (void);
 
     Builder& operator= (const Builder&) = delete;
     Builder& operator= (Builder&&) = delete;
 
-    Builder& addLine (shared_ptr<const string> line);
+    Builder& addLine (int index, const shared_ptr<const string>& line);
     shared_ptr<const Page> build (void);
-    Builder& prepareBuildingNewPage (int lineCount);
+    Builder& editLine (int index, const shared_ptr<const string>& line);
+    Builder& lines (const shared_ptr<shared_ptr<const string>>& lines, int lineCount);
+    Builder& reset (void);
+    Builder& setLine (int index, const shared_ptr<const string>& line);
   };
 
 private:
-  int validateCursorForInsert (const Cursor& cursor) const;
+  void validateCursorForInsert (const Cursor& cursor) const;
 };
 
 #endif

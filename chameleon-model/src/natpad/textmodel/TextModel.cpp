@@ -41,17 +41,23 @@ TextModel::TextModel (istream& stream) : TextModel () {
     int i;
     Page::Builder pageBuilder;
     for (i = 0; i < m_pageCount - 1; ++i) {
-      pageBuilder.prepareBuildingNewPage (Page::preferredSize);
+      shared_ptr<const string>* lineArray = new shared_ptr<const string>[Page::preferredSize];
       for (int j = 0; j < Page::preferredSize; ++j) {
-        pageBuilder.addLine (lines[Page::preferredSize * i + j]);
+        lineArray[j] = lines[Page::preferredSize * i + j];
       }
-      pages[i] = pageBuilder.build ();
+      pages[i] =
+          pageBuilder.lines (shared_ptr<shared_ptr<const string>> (lineArray, [] (shared_ptr<const string>* array) { delete[] array; }), Page::preferredSize)
+                     .build ();
+      pageBuilder.reset ();
     }
-    pageBuilder.prepareBuildingNewPage (remainder);
+
+    shared_ptr<const string>* lineArray = new shared_ptr<const string>[remainder];
     for (int j = 0; j < remainder; ++j) {
-      pageBuilder.addLine (lines[Page::preferredSize * i + j]);
+      lineArray[j] = lines[Page::preferredSize * i + j];
     }
-    pages[i] = pageBuilder.build ();
+    pages[i] =
+        pageBuilder.lines (shared_ptr<shared_ptr<const string>> (lineArray, [] (shared_ptr<const string>* array) { delete[] array; }), remainder)
+                   .build ();
 
     m_pages.reset (pages, [](shared_ptr<const Page>* p) { delete[] p; });
   }
