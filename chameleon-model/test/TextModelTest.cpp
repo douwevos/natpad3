@@ -60,6 +60,8 @@ static string createLines (int count) {
     result += createLine (i);
     result += '\n';
   }
+  if (count > 0)
+    result.pop_back ();
   return result;
 }
 
@@ -104,9 +106,10 @@ void TextModelTest::testConstructor_istream_noLines (void) {
   std::stringstream stream (s);
 
   const TextModel model (stream);
-  assertEquals (0, model.lineCount ());
-  assertEquals (0, model.m_pageCount);
+  assertEquals (1, model.lineCount ());
+  assertEquals (1, model.m_pageCount);
   assertTrue (model.m_editPageIndex < 0);
+  assertEquals ("", *model.m_pages.get ()[0]->lineAt (0));
 }
 
 void TextModelTest::testConstructor_istream_lessThanPreferredPageSizeLines (void) {

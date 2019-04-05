@@ -32,6 +32,7 @@ using std::vector;
 
 namespace StringUtils {
   vector<shared_ptr<string>> getLines (istream& stream);
+  vector<shared_ptr<string>> getLines (const string& text);
 }
 
 #endif

@@ -17,7 +17,6 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include <sstream>
 #include <natpad/util/StringUtils.h>
 #include "StringUtilsTest.h"
 
@@ -45,10 +44,43 @@ const TestCase::Test* StringUtilsTest::getTests (void) {
 void StringUtilsTest::testGetLines (void) {
   setTestName (__func__);
 
-  string data = "eerste regel\r\n\nderde regel \n  vierde regel";
-  std::stringstream stream (data);
+  string data = "";
+  vector<shared_ptr<string>> lines = StringUtils::getLines (data);
+  assertEquals (1, lines.size ());
+  assertEquals ("", *lines[0]);
 
-  vector<shared_ptr<string>> lines = StringUtils::getLines (stream);
+  data = "abcd";
+  lines = StringUtils::getLines (data);
+  assertEquals (1, lines.size ());
+  assertEquals ("abcd", *lines[0]);
+
+  data = "\n";
+  lines = StringUtils::getLines (data);
+  assertEquals (2, lines.size ());
+  assertEquals ("", *lines[0]);
+  assertEquals ("", *lines[1]);
+
+  data = "\nabcd";
+  lines = StringUtils::getLines (data);
+  assertEquals (2, lines.size ());
+  assertEquals ("", *lines[0]);
+  assertEquals ("abcd", *lines[1]);
+
+  data = "ab\ncd";
+  lines = StringUtils::getLines (data);
+  assertEquals (2, lines.size ());
+  assertEquals ("ab", *lines[0]);
+  assertEquals ("cd", *lines[1]);
+
+  data = "ab\ncd\n";
+  lines = StringUtils::getLines (data);
+  assertEquals (3, lines.size ());
+  assertEquals ("ab", *lines[0]);
+  assertEquals ("cd", *lines[1]);
+  assertEquals ("", *lines[2]);
+
+  data = "eerste regel\r\n\nderde regel \n  vierde regel";
+  lines = StringUtils::getLines (data);
   assertEquals (4, lines.size ());
   assertEquals ("eerste regel", *lines[0]);
   assertEquals ("", *lines[1]);
