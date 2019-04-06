@@ -8,11 +8,19 @@
 #include <natpad/view/View.h>
 
 View::View (void) {
+	view_y = 0;
 	layout_height = 100;
 }
 
 
-void View::setAdjustments(Glib::RefPtr<Gtk::Adjustment> vertical_adjustment) {
+long long View::set_view_y(long long y_pos) {
+	long long result = view_y;
+	this->view_y = y_pos;
+	return result;
+}
+
+
+void View::setVerticalAdjustment(Glib::RefPtr<Gtk::Adjustment> vertical_adjustment) {
 	printf("setAdjustments:%p\n", vertical_adjustment.get());
 	this->vertical_adjustment = vertical_adjustment;
 }
@@ -45,3 +53,14 @@ void View::setLayoutHeight(long long int height) {
 //	priv->vadjustment = vadjustment;
 //
 //}
+
+
+void View::draw(const Cairo::RefPtr<Cairo::Context>& cr) {
+	cr->translate(0, -view_y);
+
+	cr->set_source_rgb (1.0, 0.0, 0.0);
+	cr->move_to(0, 0);
+	cr->line_to(1000, 3000);
+	cr->stroke();
+
+}

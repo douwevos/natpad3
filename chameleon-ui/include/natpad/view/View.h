@@ -15,27 +15,21 @@ class View : public Glib::Object {
 public:
 	View (void);
 
-	void setAdjustments(Glib::RefPtr<Gtk::Adjustment> vertical_adjustment);
+	void setVerticalAdjustment(Glib::RefPtr<Gtk::Adjustment> vertical_adjustment);
 
 	void setLayoutHeight(long long int height);
 
-//protected:
-//  bool on_draw (const Cairo::RefPtr<Cairo::Context>& cr) override;
-//
-//  void on_realize() override;
-////  void on_unrealize() override;
-//
-//
-//
+	long long set_view_y(long long y_pos);
+
+	void draw(const Cairo::RefPtr<Cairo::Context>& cr);
+
 private:
 
+	long long view_y;
 	long long int layout_height;
 
 	Glib::RefPtr<Gtk::Adjustment> vertical_adjustment;
 
-
-//  void drawRect (const Cairo::RefPtr<Cairo::Context>& cr, int width, int height);
-//  void drawText (const Cairo::RefPtr<Cairo::Context>& cr, int rectWidth, int rectHeight);
 };
 
 #endif /* NATPAD_VIEW_VIEW_H_ */

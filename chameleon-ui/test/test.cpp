@@ -1,7 +1,7 @@
 #include <gtkmm/application.h>
 #include <gtkmm/window.h>
 #include <gtkmm/scrolledwindow.h>
-#include <natpad/ChameleonEditor.h>
+#include <natpad/Editor.h>
 
 int main (int argc, char** args, char** env) {
   Glib::RefPtr<Gtk::Application> app = Gtk::Application::create (argc, args);
@@ -12,16 +12,26 @@ int main (int argc, char** args, char** env) {
 
 
   Gtk::ScrolledWindow scrolled_window;
+  scrolled_window.set_policy(Gtk::POLICY_ALWAYS, Gtk::POLICY_ALWAYS);
   window.add(scrolled_window);
+  Gtk::Allocation alloc;
+  alloc.set_x(0);
+  alloc.set_y(0);
+  alloc.set_width(5000);
+  alloc.set_height(5000);
+  scrolled_window.size_allocate(alloc);
 
-
-  ChameleonEditor editor;
+  Editor editor;
   scrolled_window.add(editor);
 
   window.show_all();
 
-
   editor.getView()->setLayoutHeight(3000);
+
+  Gtk::Scrollbar *scrollbar = scrolled_window.get_vscrollbar();
+  scrollbar = scrolled_window.get_hscrollbar();
+  scrollbar->get_adjustment()->set_upper(8000);
+  scrollbar->get_adjustment()->set_page_size(100);
 
   return app->run (window);
 }
