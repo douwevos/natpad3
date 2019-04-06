@@ -51,7 +51,6 @@ public:
     int m_editLineIndex;
     int m_lineCount;
     int m_setIndex;
-    bool m_addLine;
 
   public:
     Builder (void);
@@ -61,12 +60,15 @@ public:
     Builder& operator= (const Builder&) = delete;
     Builder& operator= (Builder&&) = delete;
 
-    Builder& addLine (int index, const shared_ptr<const string>& line);
     shared_ptr<const Page> build (void);
     Builder& editLine (int index, const shared_ptr<const string>& line);
     Builder& lines (const shared_ptr<shared_ptr<const string>>& lines, int lineCount);
     Builder& reset (void);
     Builder& setLine (int index, const shared_ptr<const string>& line);
+
+  private:
+    void buildSingleOrNoEditLine (Page* page);
+    void buildMultipleEditLines (Page* page);
   };
 
 private:
