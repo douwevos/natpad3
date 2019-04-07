@@ -21,14 +21,14 @@ long long View::set_view_y(long long y_pos) {
 
 
 void View::setVerticalAdjustment(Glib::RefPtr<Gtk::Adjustment> vertical_adjustment) {
-	printf("setAdjustments:%p\n", vertical_adjustment.get());
+	printf("setAdjustments:%p\n", vertical_adjustment);
 	this->vertical_adjustment = vertical_adjustment;
 }
 void View::setLayoutHeight(long long int height) {
 	  printf ("View::setLayoutHeight: w=%lld\n", height);
 
 	this->layout_height = height;
-	if (vertical_adjustment.get()) {
+	if (vertical_adjustment) {
 		gdouble new_upper = (gdouble) layout_height;
 		gdouble old_value = vertical_adjustment->get_value();
 		int view_height = vertical_adjustment->get_page_size();
