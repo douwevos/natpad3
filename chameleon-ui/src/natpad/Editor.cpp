@@ -51,7 +51,7 @@ void Editor::on_realize() {
 	attributes.width = allocation.get_width();
 	attributes.height = allocation.get_height();
 	attributes.wclass = GDK_INPUT_OUTPUT;
-	attributes.visual = visual.get()->gobj();
+	attributes.visual = visual->gobj();
 	attributes.event_mask = GDK_VISIBILITY_NOTIFY_MASK
 			| GDK_EXPOSURE_MASK
 			| events;
