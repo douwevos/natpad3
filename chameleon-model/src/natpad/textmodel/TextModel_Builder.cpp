@@ -58,8 +58,14 @@ shared_ptr<const TextModel> TextModel::Builder::build (void) {
     textModel->m_editPage = m_editPage;
   }
   textModel->m_lineCount = m_lineCount;
+  textModel->m_cursor = m_cursor;
 
   return shared_ptr<const TextModel> (textModel);
+}
+
+TextModel::Builder& TextModel::Builder::cursor (const Cursor& cursor) {
+  m_cursor = cursor;
+  return *this;
 }
 
 TextModel::Builder& TextModel::Builder::editPage (int index, shared_ptr<const Page>& page) {

@@ -63,12 +63,17 @@ TextModel::TextModel (istream& stream) : TextModel () {
   }
 }
 
+Cursor TextModel::cursor (void) const {
+  return m_cursor;
+}
+
 shared_ptr<const TextModel> TextModel::insert (const Cursor& cursor, const string& text) const {
   if (cursor.line < 0 || cursor.line > m_lineCount)
     throw std::out_of_range ("Cursor line out of range.");
 
   TextModel::Builder builder;
   TextModel::PageInfo pageInfo = pageInfoForLine (cursor.line);
+  Cursor pageCursor (cursor.line - pageInfo.firstLine, cursor.column);
 
   int oldLC;
   shared_ptr<const Page> newEditPage;
@@ -76,17 +81,17 @@ shared_ptr<const TextModel> TextModel::insert (const Cursor& cursor, const strin
   if (pageInfo.index == m_editPageIndex) {
 
     oldLC = m_editPage->lineCount ();
-    newEditPage = m_editPage->insert (Cursor (cursor.line - pageInfo.firstLine, cursor.column), text);
+    newEditPage = m_editPage->insert (pageCursor, text);
 
   } else {
 
     if (pageInfo.index >= m_pageCount) {
       oldLC = 0;
       const Page editPage;
-      newEditPage = editPage.insert (Cursor (cursor.line - pageInfo.firstLine, cursor.column), text);
+      newEditPage = editPage.insert (pageCursor, text);
     } else {
       oldLC = m_pages.get ()[pageInfo.index]->lineCount ();
-      newEditPage = m_pages.get ()[pageInfo.index]->insert (Cursor (cursor.line - pageInfo.firstLine, cursor.column), text);
+      newEditPage = m_pages.get ()[pageInfo.index]->insert (pageCursor, text);
     }
     if (m_editPageIndex != NO_INDEX) {
       builder.setPage (m_editPageIndex, m_editPage);
@@ -97,6 +102,7 @@ shared_ptr<const TextModel> TextModel::insert (const Cursor& cursor, const strin
   return builder.pages (m_pages, m_pageCount)
                 .editPage (pageInfo.index, newEditPage)
                 .lineCount (m_lineCount + newEditPage->lineCount () - oldLC)
+                .cursor (Cursor (pageCursor.line + pageInfo.firstLine, pageCursor.column))
                 .build ();
 }
 
