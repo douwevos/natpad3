@@ -60,16 +60,19 @@ static string createLines (int count) {
     result += createLine (i);
     result += '\n';
   }
+  if (count > 0)
+    result.pop_back ();
   return result;
 }
 
 static shared_ptr<const Page> createPage (int lineCount, int index = 0) {
-  Page::Builder builder;
-  builder.prepareBuildingNewPage (lineCount);
+  shared_ptr<const string>* lines = new shared_ptr<const string>[lineCount];
   for (int i = 0; i < lineCount; ++i) {
-    builder.addLine (shared_ptr<const string> (new string (createLine (index++))));
+    lines[i] = shared_ptr<const string> (new string (createLine (index++)));
   }
-  return builder.build ();
+  Page::Builder builder;
+  return builder.lines (shared_ptr<shared_ptr<const string>> (lines, [] (shared_ptr<const string>* array) { delete[] array; }), lineCount)
+                .build ();
 }
 
 TextModelTest::TextModelTest (void) : TestCase ("TextModelTest") {
@@ -103,9 +106,10 @@ void TextModelTest::testConstructor_istream_noLines (void) {
   std::stringstream stream (s);
 
   const TextModel model (stream);
-  assertEquals (0, model.lineCount ());
-  assertEquals (0, model.m_pageCount);
+  assertEquals (1, model.lineCount ());
+  assertEquals (1, model.m_pageCount);
   assertTrue (model.m_editPageIndex < 0);
+  assertEquals ("", *model.m_pages.get ()[0]->lineAt (0));
 }
 
 void TextModelTest::testConstructor_istream_lessThanPreferredPageSizeLines (void) {

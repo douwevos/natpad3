@@ -45,6 +45,7 @@ public:
   void testInsert_differentLineAsBefore (void);
   void testInsert_beforeAddLineNowAddLine (void);
   void testInsert_beforeAddLineNowDifferentExistingLine (void);
+  void testInsert_multipleLines (void);
 };
 
 #endif

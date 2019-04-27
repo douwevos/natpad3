@@ -42,7 +42,8 @@ static const Test tests[] = {
   &PageTest::testInsert_sameLineAsBefore,
   &PageTest::testInsert_differentLineAsBefore,
   &PageTest::testInsert_beforeAddLineNowAddLine,
-  &PageTest::testInsert_beforeAddLineNowDifferentExistingLine
+  &PageTest::testInsert_beforeAddLineNowDifferentExistingLine,
+  &PageTest::testInsert_multipleLines
 };
 
 static unique_ptr<const Page> createEmptyPage (void) {
@@ -235,4 +236,55 @@ void PageTest::testInsert_beforeAddLineNowDifferentExistingLine (void) {
   assertEquals (5, newPage->lineCount ());
   assertEquals ("vierde regel is niet meer de laatste.", *newPage->lineAt (3));
   assertEquals ("vijfde regel", *newPage->lineAt (4));
+}
+
+void PageTest::testInsert_multipleLines (void) {
+  setTestName (__func__);
+
+  unique_ptr<const Page> page = createNonemptyPage ();
+  assertEquals (4, page->lineCount ());
+
+  shared_ptr<const Page> newPage = page->insert (Cursor (0, 6), " test\r\nmet een nieuwe");
+  assertEquals (5, newPage->lineCount ());
+  assertEquals ("eerste test", *newPage->lineAt (0));
+  assertEquals ("met een nieuwe regel", *newPage->lineAt (1));
+  assertEquals (SECOND_LINE, *newPage->lineAt (2));
+  assertEquals (THIRD_LINE, *newPage->lineAt (3));
+  assertEquals (FOURTH_LINE, *newPage->lineAt (4));
+  assertEquals (1, newPage->m_editLineIndex);
+
+  newPage = newPage->insert (Cursor (5, 0), "\nUit 'de vrolijke wetenschap'\nvan Friedrich Nietzsche:\n---\n");
+  assertEquals (10, newPage->lineCount ());
+  assertEquals ("eerste test", *newPage->lineAt (0));
+  assertEquals ("met een nieuwe regel", *newPage->lineAt (1));
+  assertEquals (SECOND_LINE, *newPage->lineAt (2));
+  assertEquals (THIRD_LINE, *newPage->lineAt (3));
+  assertEquals (FOURTH_LINE, *newPage->lineAt (4));
+  assertEquals ("", *newPage->lineAt (5));
+  assertEquals ("Uit 'de vrolijke wetenschap'", *newPage->lineAt (6));
+  assertEquals ("van Friedrich Nietzsche:", *newPage->lineAt (7));
+  assertEquals ("---", *newPage->lineAt (8));
+  assertEquals ("", *newPage->lineAt (9));
+  assertEquals (9, newPage->m_editLineIndex);
+
+  newPage = newPage->insert (Cursor (7, 24), "\n\nVademecum - Vadetecum\n\nEs lockt dich meine Art und Sprach',\nDu folgest mir, du gehst mir nach?\nGeh nur dir selber treulich nach:-\nSo folgst du mir - gemach! gemach!");
+  assertEquals (17, newPage->lineCount ());
+  assertEquals ("eerste test", *newPage->lineAt (0));
+  assertEquals ("met een nieuwe regel", *newPage->lineAt (1));
+  assertEquals (SECOND_LINE, *newPage->lineAt (2));
+  assertEquals (THIRD_LINE, *newPage->lineAt (3));
+  assertEquals (FOURTH_LINE, *newPage->lineAt (4));
+  assertEquals ("", *newPage->lineAt (5));
+  assertEquals ("Uit 'de vrolijke wetenschap'", *newPage->lineAt (6));
+  assertEquals ("van Friedrich Nietzsche:", *newPage->lineAt (7));
+  assertEquals ("", *newPage->lineAt (8));
+  assertEquals ("Vademecum - Vadetecum", *newPage->lineAt (9));
+  assertEquals ("", *newPage->lineAt (10));
+  assertEquals ("Es lockt dich meine Art und Sprach',", *newPage->lineAt (11));
+  assertEquals ("Du folgest mir, du gehst mir nach?", *newPage->lineAt (12));
+  assertEquals ("Geh nur dir selber treulich nach:-", *newPage->lineAt (13));
+  assertEquals ("So folgst du mir - gemach! gemach!", *newPage->lineAt (14));
+  assertEquals ("---", *newPage->lineAt (15));
+  assertEquals ("", *newPage->lineAt (16));
+  assertEquals (14, newPage->m_editLineIndex);
 }
