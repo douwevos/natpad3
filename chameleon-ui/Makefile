@@ -13,13 +13,15 @@ empty :=
 space := $(empty) $(empty)
 VPATH := $(subst $(space),:,$(shell find src -type d))
 
-.PHONY: clean
+.PHONY: clean all
 
 $(objdir)/%.o: %.cpp | $(objdir)
 	$(cc) $(compiler_flags) -c $(includedirs) -o $@ $<
 
 $(libdir)/$(libname): $(objects) | $(libdir)
 	ar rcs $@ $?
+
+all: $(libdir)/$(libname)
 
 clean:
 	-rm $(objdir)/*
