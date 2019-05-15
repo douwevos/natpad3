@@ -97,6 +97,8 @@ void TextModelTest::testConstructor_void (void) {
   assertEquals (0, model.lineCount ());
   assertEquals (0, model.m_pageCount);
   assertTrue (model.m_editPageIndex < 0);
+  assertEquals (0, model.cursor ().line);
+  assertEquals (0, model.cursor ().column);
 }
 
 void TextModelTest::testConstructor_istream_noLines (void) {
@@ -297,6 +299,8 @@ void TextModelTest::testInsert_emptyModel (void) {
   textModel = textModel->insert (Cursor (), "hoi");
   assertEquals (1, textModel->lineCount ());
   assertEquals ("hoi", *textModel->lineAt (0));
+  assertEquals (0, textModel->cursor ().line);
+  assertEquals (3, textModel->cursor ().column);
 }
 
 /* Auxiliary to TextModelTest::testInsert_modifyLineOrAddAtEnd.  */

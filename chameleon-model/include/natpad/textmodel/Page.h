@@ -39,7 +39,11 @@ public:
 
   Page (void);
 
-  shared_ptr<const Page> insert (Cursor cursor, const string& text) const;
+  /* Constructs a new Page from this one, with the specified text inserted at the
+     the position of the specified cursor; cursor will change value to the position
+     where it ends up after insertion.  The new page with the inserted text is
+     returned.  */
+  shared_ptr<const Page> insert (Cursor& cursor, const string& text) const;
   shared_ptr<const string> lineAt (int line) const;
   int lineCount (void) const;
 
