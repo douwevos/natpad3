@@ -20,35 +20,33 @@ using std::shared_ptr;
 
 class Editor : public Gtk::Scrollable, public Gtk::Widget {
 public:
-	Editor (void);
+  Editor (void);
 
-	// TODO only for testing for now.
-	shared_ptr<View> getView();
+  // TODO only for testing for now.
+  shared_ptr<View> getView ();
 
-	void on_property_value_hadjustment();
-	void on_property_value_vadjustment();
+  void on_property_value_hadjustment ();
+  void on_property_value_vadjustment ();
 
 protected:
 
-    Glib::Property<Glib::RefPtr<Gtk::Adjustment>> hadjustment_, vadjustment_;
-    Glib::Property<Gtk::ScrollablePolicy> hscroll_policy_, vscroll_policy_;
+  Glib::Property<Glib::RefPtr<Gtk::Adjustment>> m_hadjustment, m_vadjustment;
+  Glib::Property<Gtk::ScrollablePolicy> m_hscroll_policy, m_vscroll_policy;
 
-    sigc::connection co;
+  sigc::connection m_co;
 
   bool on_draw (const Cairo::RefPtr<Cairo::Context>& cr) override;
 
-  void on_realize() override;
-//  void on_unrealize() override;
-
-
+  void on_realize () override;
+  //  void on_unrealize() override;
 
 private:
-  shared_ptr<View> view;
+  shared_ptr<View> m_view;
 
-  Glib::RefPtr<Gtk::Adjustment> vertical_adjustment;
-  sigc::connection s_vertical_adjustment;
+  Glib::RefPtr<Gtk::Adjustment> m_vertical_adjustment;
+  sigc::connection m_s_vertical_adjustment;
 
-  void l_set_vadjustment();
+  void l_set_vadjustment ();
 };
 
 #endif /* NATPAD_EDITOR_H_ */

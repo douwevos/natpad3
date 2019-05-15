@@ -32,3 +32,8 @@
 *.app
 *.elf
 /build/
+
+# Eclipse
+.cproject
+.project
+.settings/
