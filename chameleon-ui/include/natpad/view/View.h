@@ -27,6 +27,7 @@ public:
   void setTextModel (shared_ptr<const TextModel> textmodel);
 
 private:
+  static constexpr double m_fontSize = 24;
 
   long long m_view_y;
   long long int m_layout_height;
@@ -34,6 +35,7 @@ private:
   Glib::RefPtr<Gtk::Adjustment> m_vertical_adjustment;
   shared_ptr<const TextModel> m_textmodel;
 
+  void setFontAndColour (const Cairo::RefPtr<Cairo::Context>& cr);
 };
 
 #endif /* NATPAD_VIEW_VIEW_H_ */

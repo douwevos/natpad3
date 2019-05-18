@@ -7,6 +7,8 @@
 
 #include <natpad/view/View.h>
 
+using std::unique_ptr;
+
 View::View (void) {
   m_view_y = 0;
   m_layout_height = 100;
@@ -22,6 +24,7 @@ void View::setVerticalAdjustment (Glib::RefPtr<Gtk::Adjustment> vertical_adjustm
   printf ("setAdjustments:%p\n", vertical_adjustment);
   this->m_vertical_adjustment = vertical_adjustment;
 }
+
 void View::setLayoutHeight (long long int height) {
   printf ("View::setLayoutHeight: w=%lld\n", height);
 
@@ -51,35 +54,51 @@ void View::setLayoutHeight (long long int height) {
 //}
 
 void View::draw (const Cairo::RefPtr<Cairo::Context>& cr) {
-  cr->translate (0, -m_view_y);
+  cr->translate (0, -m_view_y); /* @Douwe: Deze regel lijkt nodig voor het scrollen... Waarom is dat? */
 
-  /*
-   cr->set_source_rgb (1.0, 0.0, 0.0);
-   cr->move_to (0, 0);
-   cr->line_to (1000, 3000);
-   cr->stroke ();
-   */
   cr->set_source_rgb (0.0, 0.0, 0.0);
   cr->rectangle (0, 0, 1024, 5000);
   cr->fill ();
 
+
   if (m_textmodel) {
-    double delta = 24;
-    double y = delta;
+    setFontAndColour (cr);
 
-    cr->set_source_rgb (0.7, 0.7, 0.7);
-    cr->set_font_size (24);
-    cr->select_font_face ("Courier New", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL);
+    const int lineCount = m_textmodel->lineCount ();
+    unique_ptr<Cairo::RefPtr<Cairo::ImageSurface>[]> surfaces (new Cairo::RefPtr<Cairo::ImageSurface>[lineCount]);
 
-    int lineCount = m_textmodel->lineCount ();
     for (int i = 0; i < lineCount; ++i) {
+      Cairo::TextExtents extent;
       shared_ptr<const string> line = m_textmodel->lineAt (i);
-      cr->move_to (0, y);
-      cr->show_text (*line);
+      cr->get_text_extents (*line, extent);
+      surfaces[i] = Cairo::ImageSurface::create (Cairo::FORMAT_ARGB32, extent.width + 1, m_fontSize);
+      Cairo::RefPtr<Cairo::Context> ctxt = Cairo::Context::create (surfaces[i]);
+      if (i & 1) {
+        ctxt->set_source_rgb (0.5, 0.0, 0.0);
+        ctxt->rectangle (0, 0, surfaces[i]->get_width (), surfaces[i]->get_height ());
+        ctxt->fill ();
+      }
+      setFontAndColour (ctxt);
+      ctxt->move_to (0, m_fontSize - 6);
+      ctxt->show_text (*line);
+    }
+
+    const double delta = m_fontSize;
+    double y = 3;
+
+    for (int i = 0; i < lineCount; ++i) {
+      cr->set_source (surfaces[i], 0, y);
+      cr->rectangle (0, y, surfaces[i]->get_width (), m_fontSize);
+      cr->fill ();
       y += delta;
     }
   }
+}
 
+void View::setFontAndColour (const Cairo::RefPtr<Cairo::Context>& cr) {
+  cr->set_source_rgb (0.7, 0.7, 0.7);
+  cr->set_font_size (m_fontSize);
+  cr->select_font_face ("Courier New", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL);
 }
 
 void View::setTextModel (shared_ptr<const TextModel> textmodel) {
