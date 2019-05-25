@@ -6,10 +6,11 @@
  */
 
 #include <natpad/view/View.h>
+#include <natpad/Editor.h>
 
 using std::unique_ptr;
 
-View::View (void) {
+View::View (Editor& owningEditor) : m_editor (owningEditor) {
   m_view_y = 0;
   m_layout_height = 100;
 }
@@ -62,41 +63,56 @@ void View::draw (const Cairo::RefPtr<Cairo::Context>& cr) {
 
 
   if (m_textmodel) {
-    setFontAndColour (cr);
+    setFont (cr);
 
+    Colour textColour (0.7, 0.7, 0.7);
     const int lineCount = m_textmodel->lineCount ();
-    unique_ptr<Cairo::RefPtr<Cairo::ImageSurface>[]> surfaces (new Cairo::RefPtr<Cairo::ImageSurface>[lineCount]);
-
+    LineImage* lineImages = new LineImage[lineCount];
     for (int i = 0; i < lineCount; ++i) {
-      Cairo::TextExtents extent;
-      shared_ptr<const string> line = m_textmodel->lineAt (i);
-      cr->get_text_extents (*line, extent);
-      surfaces[i] = Cairo::ImageSurface::create (Cairo::FORMAT_ARGB32, extent.width + 1, m_fontSize);
-      Cairo::RefPtr<Cairo::Context> ctxt = Cairo::Context::create (surfaces[i]);
-      if (i & 1) {
-        ctxt->set_source_rgb (0.5, 0.0, 0.0);
-        ctxt->rectangle (0, 0, surfaces[i]->get_width (), surfaces[i]->get_height ());
-        ctxt->fill ();
-      }
-      setFontAndColour (ctxt);
-      ctxt->move_to (0, m_fontSize - 6);
-      ctxt->show_text (*line);
+      initLineImage (lineImages[i], m_textmodel->lineAt (i), cr->get_scaled_font (), textColour);
     }
 
     const double delta = m_fontSize;
     double y = 3;
 
     for (int i = 0; i < lineCount; ++i) {
-      cr->set_source (surfaces[i], 0, y);
-      cr->rectangle (0, y, surfaces[i]->get_width (), m_fontSize);
+      cr->set_source (lineImages[i].surface (), 0, y);
+      cr->rectangle (0, y, lineImages[i].width (), lineImages[i].height ());
       cr->fill ();
       y += delta;
     }
+
+    delete[] lineImages;
   }
 }
 
-void View::setFontAndColour (const Cairo::RefPtr<Cairo::Context>& cr) {
-  cr->set_source_rgb (0.7, 0.7, 0.7);
+void View::initLineImage (LineImage& lineImage,
+    shared_ptr<const string> line,
+    Cairo::RefPtr<Cairo::ScaledFont> font,
+    const Colour& textColour) {
+  Cairo::TextExtents extent;
+  font->text_extents (*line, extent);
+  const double width = extent.x_advance;
+  const double height = m_fontSize;
+
+  Glib::RefPtr<Gdk::Window> window = m_editor.get_window ();
+  Cairo::RefPtr<Cairo::Surface> surface;
+  if (window) {
+    surface = window->create_similar_surface (Cairo::CONTENT_COLOR, width, height);
+  } else {
+    surface = Cairo::ImageSurface::create (Cairo::FORMAT_ARGB32, width, height);
+  }
+
+  Cairo::RefPtr<Cairo::Context> context = Cairo::Context::create (surface);
+  context->set_scaled_font (font);
+  context->set_source_rgb (textColour.red (), textColour.green (), textColour.blue ());
+  context->move_to (0, height - 6);
+  context->show_text (*line);
+
+  lineImage.set (surface, width, height);
+}
+
+void View::setFont (const Cairo::RefPtr<Cairo::Context>& cr) {
   cr->set_font_size (m_fontSize);
   cr->select_font_face ("Courier New", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL);
 }

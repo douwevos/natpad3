@@ -11,10 +11,14 @@
 #include <glibmm-2.4/glibmm.h>
 #include <gtkmm.h>
 #include <natpad/textmodel/TextModel.h>
+#include <natpad/view/Colour.h>
+#include <natpad/view/LineImage.h>
 
-class View : public Glib::Object {
+class Editor;
+
+class View {
 public:
-  View (void);
+  View (Editor& owningEditor);
 
   void setVerticalAdjustment (Glib::RefPtr<Gtk::Adjustment> vertical_adjustment);
 
@@ -34,8 +38,13 @@ private:
 
   Glib::RefPtr<Gtk::Adjustment> m_vertical_adjustment;
   shared_ptr<const TextModel> m_textmodel;
+  Editor& m_editor;
 
-  void setFontAndColour (const Cairo::RefPtr<Cairo::Context>& cr);
+  void initLineImage (LineImage& lineImage,
+      shared_ptr<const string> line,
+      Cairo::RefPtr<Cairo::ScaledFont> font,
+      const Colour& textColour);
+  void setFont (const Cairo::RefPtr<Cairo::Context>& cr);
 };
 
 #endif /* NATPAD_VIEW_VIEW_H_ */

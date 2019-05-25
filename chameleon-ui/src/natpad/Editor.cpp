@@ -19,7 +19,7 @@ Editor::Editor (void) :
         m_vscroll_policy (*this, "vscroll-policy", Gtk::SCROLL_NATURAL)
 {
   property_vadjustment ().signal_changed ().connect (sigc::mem_fun (*this, &Editor::on_property_value_vadjustment));
-  m_view = shared_ptr<View> (new View ());
+  m_view = shared_ptr<View> (new View (*this));
   set_app_paintable ();
   set_can_focus ();
   show ();
