@@ -21,9 +21,11 @@ using std::shared_ptr;
 class Editor : public Gtk::Scrollable, public Gtk::Widget {
 public:
   Editor (void);
-
-  // TODO only for testing for now.
-  shared_ptr<View> getView ();
+  Editor (const Editor&) = delete;
+  Editor& operator= (const Editor&) = delete;
+  Editor (Editor&&) = delete;
+  Editor& operator= (Editor&&) = delete;
+  virtual ~Editor (void);
 
   void on_property_value_hadjustment ();
   void on_property_value_vadjustment ();
@@ -41,7 +43,7 @@ protected:
   //  void on_unrealize() override;
 
 private:
-  shared_ptr<View> m_view;
+  View* m_view;
 
   Glib::RefPtr<Gtk::Adjustment> m_vertical_adjustment;
   sigc::connection m_s_vertical_adjustment;

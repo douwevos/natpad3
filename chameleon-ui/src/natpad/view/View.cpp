@@ -5,13 +5,18 @@
  *      Author: dvos
  */
 
+#include <utility>
 #include <natpad/view/View.h>
 #include <natpad/Editor.h>
-#include <natpad/util/UniqueArrayPtr.h>
 
 View::View (Editor& owningEditor) : m_editor (owningEditor) {
   m_view_y = 0;
   m_layout_height = 100;
+  Cairo::Matrix fontMatrix (m_fontSize, 0, 0, m_fontSize, 0, 0);
+  Cairo::Matrix ctmMatrix (1, 0, 0, 1, 0, 0);
+  Cairo::RefPtr<Cairo::ToyFontFace> fontface = Cairo::ToyFontFace::create ("Courier New", Cairo::FONT_SLANT_NORMAL,
+      Cairo::FONT_WEIGHT_NORMAL);
+  m_font = Cairo::ScaledFont::create (fontface, fontMatrix, ctmMatrix);
 }
 
 long long View::set_view_y (long long y_pos) {
@@ -21,7 +26,7 @@ long long View::set_view_y (long long y_pos) {
 }
 
 void View::setVerticalAdjustment (Glib::RefPtr<Gtk::Adjustment> vertical_adjustment) {
-  printf ("setAdjustments:%p\n", vertical_adjustment);
+  //printf ("setAdjustments:%p\n", vertical_adjustment);
   this->m_vertical_adjustment = vertical_adjustment;
 }
 
@@ -62,33 +67,35 @@ void View::draw (const Cairo::RefPtr<Cairo::Context>& cr) {
 
 
   if (m_textmodel) {
-    setFont (cr);
-
-    Colour textColour (0.7, 0.7, 0.7);
     const int lineCount = m_textmodel->lineCount ();
-    UniqueArrayPtr<LineImage> lineImages (new LineImage[lineCount]);
-    for (int i = 0; i < lineCount; ++i) {
-      initLineImage (lineImages[i], m_textmodel->lineAt (i), cr->get_scaled_font (), textColour);
-    }
-
     const double delta = m_fontSize;
     double y = 3;
 
     for (int i = 0; i < lineCount; ++i) {
-      cr->set_source (lineImages[i].surface (), 0, y);
-      cr->rectangle (0, y, lineImages[i].width (), lineImages[i].height ());
+      cr->set_source (m_lineImages[i].surface (), 0, y);
+      cr->rectangle (0, y, m_lineImages[i].width (), m_lineImages[i].height ());
       cr->fill ();
       y += delta;
     }
   }
 }
 
+void View::invalidateLines (void) {
+  Colour textColour (0.7, 0.7, 0.7);
+  const int lineCount = m_textmodel->lineCount ();
+  UniqueArrayPtr<LineImage> lineImages (new LineImage[lineCount]);
+  for (int i = 0; i < lineCount; ++i) {
+    initLineImage (lineImages[i], m_textmodel->lineAt (i), textColour);
+    m_editor.queue_draw_area (0, i * m_fontSize, lineImages[i].width (), lineImages[i].height ());
+  }
+  m_lineImages = std::move (lineImages);
+}
+
 void View::initLineImage (LineImage& lineImage,
     shared_ptr<const string> line,
-    Cairo::RefPtr<Cairo::ScaledFont> font,
     const Colour& textColour) {
   Cairo::TextExtents extent;
-  font->text_extents (*line, extent);
+  m_font->text_extents (*line, extent);
   const double width = extent.x_advance;
   const double height = m_fontSize;
 
@@ -101,7 +108,7 @@ void View::initLineImage (LineImage& lineImage,
   }
 
   Cairo::RefPtr<Cairo::Context> context = Cairo::Context::create (surface);
-  context->set_scaled_font (font);
+  context->set_scaled_font (m_font);
   context->set_source_rgb (textColour.red (), textColour.green (), textColour.blue ());
   context->move_to (0, height - 6);
   context->show_text (*line);
@@ -109,11 +116,7 @@ void View::initLineImage (LineImage& lineImage,
   lineImage.set (surface, width, height);
 }
 
-void View::setFont (const Cairo::RefPtr<Cairo::Context>& cr) {
-  cr->set_font_size (m_fontSize);
-  cr->select_font_face ("Courier New", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL);
-}
-
 void View::setTextModel (shared_ptr<const TextModel> textmodel) {
   m_textmodel = textmodel;
+  invalidateLines ();
 }
