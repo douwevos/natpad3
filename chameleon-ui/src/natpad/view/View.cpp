@@ -7,8 +7,7 @@
 
 #include <natpad/view/View.h>
 #include <natpad/Editor.h>
-
-using std::unique_ptr;
+#include <natpad/util/UniqueArrayPtr.h>
 
 View::View (Editor& owningEditor) : m_editor (owningEditor) {
   m_view_y = 0;
@@ -67,7 +66,7 @@ void View::draw (const Cairo::RefPtr<Cairo::Context>& cr) {
 
     Colour textColour (0.7, 0.7, 0.7);
     const int lineCount = m_textmodel->lineCount ();
-    LineImage* lineImages = new LineImage[lineCount];
+    UniqueArrayPtr<LineImage> lineImages (new LineImage[lineCount]);
     for (int i = 0; i < lineCount; ++i) {
       initLineImage (lineImages[i], m_textmodel->lineAt (i), cr->get_scaled_font (), textColour);
     }
@@ -81,8 +80,6 @@ void View::draw (const Cairo::RefPtr<Cairo::Context>& cr) {
       cr->fill ();
       y += delta;
     }
-
-    delete[] lineImages;
   }
 }
 
