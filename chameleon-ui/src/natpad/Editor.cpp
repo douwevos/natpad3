@@ -125,7 +125,7 @@ void Editor::on_property_value_vadjustment () {
     vertical_adjustment->set_upper (8000);
     vertical_adjustment->set_page_size (80);
   }
-  if (m_view) {
+  if (m_view != nullptr) {
     m_view->setVerticalAdjustment (vertical_adjustment);
   }
 }

@@ -67,11 +67,10 @@ void View::draw (const Cairo::RefPtr<Cairo::Context>& cr) {
 
 
   if (m_textmodel) {
-    const int lineCount = m_textmodel->lineCount ();
     const double delta = m_fontSize;
     double y = 3;
 
-    for (int i = 0; i < lineCount; ++i) {
+    for (int i = 0; i < m_lineImages.length (); ++i) {
       cr->set_source (m_lineImages[i].surface (), 0, y);
       cr->rectangle (0, y, m_lineImages[i].width (), m_lineImages[i].height ());
       cr->fill ();
@@ -83,7 +82,7 @@ void View::draw (const Cairo::RefPtr<Cairo::Context>& cr) {
 void View::invalidateLines (void) {
   Colour textColour (0.7, 0.7, 0.7);
   const int lineCount = m_textmodel->lineCount ();
-  UniqueArrayPtr<LineImage> lineImages (new LineImage[lineCount]);
+  UniqueArray<LineImage> lineImages (lineCount);
   for (int i = 0; i < lineCount; ++i) {
     initLineImage (lineImages[i], m_textmodel->lineAt (i), textColour);
     m_editor.queue_draw_area (0, i * m_fontSize, lineImages[i].width (), lineImages[i].height ());

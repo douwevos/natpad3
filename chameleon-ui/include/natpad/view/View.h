@@ -13,7 +13,7 @@
 #include <natpad/textmodel/TextModel.h>
 #include <natpad/view/Colour.h>
 #include <natpad/view/LineImage.h>
-#include <natpad/util/UniqueArrayPtr.h>
+#include <natpad/util/UniqueArray.h>
 
 class Editor;
 
@@ -41,7 +41,7 @@ private:
   shared_ptr<const TextModel> m_textmodel;
   Editor& m_editor;
   Cairo::RefPtr<Cairo::ScaledFont> m_font;
-  UniqueArrayPtr<LineImage> m_lineImages;
+  UniqueArray<LineImage> m_lineImages;
 
   void initLineImage (LineImage& lineImage,
       shared_ptr<const string> line,

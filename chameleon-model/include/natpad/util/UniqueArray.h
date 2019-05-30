@@ -17,26 +17,30 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef __NATPAD_UTIL_UNIQUE_ARRAY_PTR_INCLUDED
-#define __NATPAD_UTIL_UNIQUE_ARRAY_PTR_INCLUDED
+#ifndef __NATPAD_UTIL_UNIQUE_ARRAY_INCLUDED
+#define __NATPAD_UTIL_UNIQUE_ARRAY_INCLUDED
+
+#include <stdexcept>
 
 template <typename T>
-class UniqueArrayPtr {
+class UniqueArray {
 private:
   T* m_array;
+  int m_length;
 
 public:
-  UniqueArrayPtr (void) : m_array (nullptr) {
+  UniqueArray (void) : m_array (nullptr), m_length (0) {
   }
 
-  UniqueArrayPtr (const UniqueArrayPtr&) = delete;
-  UniqueArrayPtr& operator= (const UniqueArrayPtr&) = delete;
+  UniqueArray (const UniqueArray&) = delete;
+  UniqueArray& operator= (const UniqueArray&) = delete;
 
-  UniqueArrayPtr (UniqueArrayPtr&& other) : m_array (other.m_array) {
+  UniqueArray (UniqueArray&& other) : m_array (other.m_array), m_length (other.m_length) {
     other.m_array = nullptr;
+    other.m_length = 0;
   }
 
-  UniqueArrayPtr& operator= (UniqueArrayPtr&& other) {
+  UniqueArray& operator= (UniqueArray&& other) {
     if (&other == this) {
       return *this;
     }
@@ -44,14 +48,24 @@ public:
       delete[] m_array;
     }
     m_array = other.m_array;
+    m_length = other.m_length;
     other.m_array = nullptr;
+    other.m_length = 0;
     return *this;
   }
 
-  explicit UniqueArrayPtr (T* array) : m_array (array) {
+  explicit UniqueArray (int length) {
+    if (length < 0) {
+      throw std::invalid_argument ("length must be non-negative.");
+    } else if (length == 0) {
+      m_array = nullptr;
+    } else {
+      m_array = new T[length];
+    }
+    m_length = length;
   }
 
-  virtual ~UniqueArrayPtr (void) {
+  ~UniqueArray (void) {
     if (m_array != nullptr) {
       delete[] m_array;
     }
@@ -67,6 +81,10 @@ public:
 
   T& operator* (void) const {
     return m_array[0];
+  }
+
+  int length (void) const {
+    return m_length;
   }
 };
 
