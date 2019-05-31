@@ -39,6 +39,8 @@ protected:
 
   bool on_draw (const Cairo::RefPtr<Cairo::Context>& cr) override;
 
+  void on_size_allocate (Gtk::Allocation& allocation) override;
+
   void on_realize () override;
   //  void on_unrealize() override;
 

@@ -30,6 +30,12 @@ Editor::Editor (void) :
   show ();
 }
 
+void Editor::on_size_allocate (Gtk::Allocation& allocation) {
+  if (m_view != nullptr)
+    m_view->setHeight (allocation.get_height ());
+  Gtk::Widget::on_size_allocate (allocation);
+}
+
 Editor::~Editor (void) {
   if (m_view != nullptr) {
     delete m_view;
