@@ -7,7 +7,8 @@ int main (int argc, char** args, char** env) {
   Glib::RefPtr<Gtk::Application> app = Gtk::Application::create (argc, args);
 
   Gtk::Window window;
-  window.set_default_size (1024, 768);
+  //window.set_default_size (1024, 768);
+  window.set_default_size (800, 600);
   window.set_title ("Tekst tekenen");
 
 

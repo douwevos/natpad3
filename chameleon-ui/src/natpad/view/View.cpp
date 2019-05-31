@@ -9,7 +9,7 @@
 #include <natpad/view/View.h>
 #include <natpad/Editor.h>
 
-View::View (Editor& owningEditor) : m_editor (owningEditor) {
+View::View (Editor& owningEditor) : m_editor (owningEditor), m_viewHeight (0) {
   m_view_y = 0;
   m_layout_height = 100;
   Cairo::Matrix fontMatrix (m_fontSize, 0, 0, m_fontSize, 0, 0);
@@ -19,19 +19,20 @@ View::View (Editor& owningEditor) : m_editor (owningEditor) {
   m_font = Cairo::ScaledFont::create (fontface, fontMatrix, ctmMatrix);
 }
 
-long long View::set_view_y (long long y_pos) {
-  long long result = m_view_y;
-  this->m_view_y = y_pos;
+int64_t View::set_view_y (int64_t y_pos) {
+  int64_t result = m_view_y;
+  m_view_y = y_pos;
+  invalidateLines ();
   return result;
 }
 
 void View::setVerticalAdjustment (Glib::RefPtr<Gtk::Adjustment> vertical_adjustment) {
-  //printf ("setAdjustments:%p\n", vertical_adjustment);
   this->m_vertical_adjustment = vertical_adjustment;
 }
 
-void View::setLayoutHeight (long long int height) {
-  printf ("View::setLayoutHeight: w=%lld\n", height);
+/* @Douwe: Waar is deze voor?  */
+void View::setLayoutHeight (int64_t height) {
+  printf ("View::setLayoutHeight: w=%ld\n", height);
 
   this->m_layout_height = height;
   if (m_vertical_adjustment) {
@@ -62,13 +63,14 @@ void View::draw (const Cairo::RefPtr<Cairo::Context>& cr) {
   cr->translate (0, -m_view_y); /* @Douwe: Deze regel lijkt nodig voor het scrollen... Waarom is dat? */
 
   cr->set_source_rgb (0.0, 0.0, 0.0);
-  cr->rectangle (0, 0, 1024, 5000);
+  cr->rectangle (0, m_view_y, 1024, m_viewHeight);
   cr->fill ();
 
-
   if (m_textmodel) {
+    printf ("View::draw: Drawing %d lines.\n", m_lineImages.length ());
+
     const double delta = m_fontSize;
-    double y = 3;
+    double y = m_view_y + 3;
 
     for (int i = 0; i < m_lineImages.length (); ++i) {
       cr->set_source (m_lineImages[i].surface (), 0, y);
@@ -80,12 +82,29 @@ void View::draw (const Cairo::RefPtr<Cairo::Context>& cr) {
 }
 
 void View::invalidateLines (void) {
+  int firstLineIndex = m_view_y / m_fontSize;
+  int lastLineIndex = (m_view_y + m_viewHeight) / m_fontSize;
+  if ((m_view_y + m_viewHeight) % m_fontSize > 0) {
+    ++lastLineIndex;
+  }
+
+  if (firstLineIndex >= m_textmodel->lineCount ()) {
+    UniqueArray<LineImage> lineImages;
+    m_lineImages = std::move (lineImages);
+    return;
+  }
+
+  if (lastLineIndex > m_textmodel->lineCount ()) {
+    lastLineIndex = m_textmodel->lineCount ();
+  }
+
   Colour textColour (0.7, 0.7, 0.7);
-  const int lineCount = m_textmodel->lineCount ();
+  const int lineCount = lastLineIndex - firstLineIndex;
   UniqueArray<LineImage> lineImages (lineCount);
   for (int i = 0; i < lineCount; ++i) {
-    initLineImage (lineImages[i], m_textmodel->lineAt (i), textColour);
-    m_editor.queue_draw_area (0, i * m_fontSize, lineImages[i].width (), lineImages[i].height ());
+    int lineIndex = i + firstLineIndex;
+    initLineImage (lineImages[i], m_textmodel->lineAt (lineIndex), textColour);
+    //m_editor.queue_draw_area (0, lineIndex * m_fontSize, lineImages[i].width (), lineImages[i].height ());
   }
   m_lineImages = std::move (lineImages);
 }
@@ -113,6 +132,11 @@ void View::initLineImage (LineImage& lineImage,
   context->show_text (*line);
 
   lineImage.set (surface, width, height);
+}
+
+void View::setHeight (int64_t height) {
+  m_viewHeight = height;
+  invalidateLines ();
 }
 
 void View::setTextModel (shared_ptr<const TextModel> textmodel) {
