@@ -109,9 +109,26 @@ void View::invalidateLines (void) {
   m_lineImages = std::move (lineImages);
 }
 
+int View::findIndexOfLineImage (const string& text) {
+  for (int i = 0; i < m_lineImages.length (); ++i) {
+    if (*m_lineImages[i].text () == text) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 void View::initLineImage (LineImage& lineImage,
     shared_ptr<const string> line,
     const Colour& textColour) {
+  int oldImageIndex = findIndexOfLineImage (*line);
+  if (oldImageIndex > -1) {
+    printf ("Reusing old image.\n");
+    lineImage = m_lineImages[oldImageIndex];
+    return;
+  }
+  printf ("Creating new image.\n");
+
   Cairo::TextExtents extent;
   m_font->text_extents (*line, extent);
   const double width = extent.x_advance;
@@ -131,7 +148,7 @@ void View::initLineImage (LineImage& lineImage,
   context->move_to (0, height - 6);
   context->show_text (*line);
 
-  lineImage.set (surface, width, height);
+  lineImage.set (surface, width, height, line);
 }
 
 void View::setHeight (int64_t height) {

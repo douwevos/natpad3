@@ -23,14 +23,19 @@ double LineImage::height (void) const {
   return m_height;
 }
 
-void LineImage::set (Cairo::RefPtr<Cairo::Surface> surface, double width, double height) {
+void LineImage::set (Cairo::RefPtr<Cairo::Surface> surface, double width, double height, shared_ptr<const string> text) {
   m_surface = surface;
   m_height = height;
   m_width = width;
+  m_text = text;
 }
 
 Cairo::RefPtr<Cairo::Surface> LineImage::surface (void) const {
   return m_surface;
+}
+
+shared_ptr<const string> LineImage::text (void) const {
+  return m_text;
 }
 
 double LineImage::width (void) const {

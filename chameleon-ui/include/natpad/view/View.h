@@ -47,6 +47,7 @@ private:
   Cairo::RefPtr<Cairo::ScaledFont> m_font;
   UniqueArray<LineImage> m_lineImages;
 
+  int findIndexOfLineImage (const string& text);
   void initLineImage (LineImage& lineImage,
       shared_ptr<const string> line,
       const Colour& textColour);
