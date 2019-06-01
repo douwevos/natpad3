@@ -30,7 +30,6 @@ void View::setVerticalAdjustment (Glib::RefPtr<Gtk::Adjustment> vertical_adjustm
   this->m_vertical_adjustment = vertical_adjustment;
 }
 
-/* @Douwe: Waar is deze voor?  */
 void View::setLayoutHeight (int64_t height) {
   printf ("View::setLayoutHeight: w=%ld\n", height);
 
@@ -67,7 +66,7 @@ void View::draw (const Cairo::RefPtr<Cairo::Context>& cr) {
   cr->fill ();
 
   if (m_textmodel) {
-    printf ("View::draw: Drawing %d lines.\n", m_lineImages.length ());
+    //printf ("View::draw: Drawing %d lines.\n", m_lineImages.length ());
 
     const double delta = m_fontSize;
     double y = m_view_y + 3;
@@ -104,7 +103,7 @@ void View::invalidateLines (void) {
   for (int i = 0; i < lineCount; ++i) {
     int lineIndex = i + firstLineIndex;
     initLineImage (lineImages[i], m_textmodel->lineAt (lineIndex), textColour);
-    //m_editor.queue_draw_area (0, lineIndex * m_fontSize, lineImages[i].width (), lineImages[i].height ());
+    m_editor.queue_draw_area (0, lineIndex * m_fontSize, lineImages[i].width (), lineImages[i].height ());
   }
   m_lineImages = std::move (lineImages);
 }
@@ -123,11 +122,11 @@ void View::initLineImage (LineImage& lineImage,
     const Colour& textColour) {
   int oldImageIndex = findIndexOfLineImage (*line);
   if (oldImageIndex > -1) {
-    printf ("Reusing old image.\n");
+    //printf ("Reusing old image.\n");
     lineImage = m_lineImages[oldImageIndex];
     return;
   }
-  printf ("Creating new image.\n");
+  //printf ("Creating new image.\n");
 
   Cairo::TextExtents extent;
   m_font->text_extents (*line, extent);
@@ -145,7 +144,7 @@ void View::initLineImage (LineImage& lineImage,
   Cairo::RefPtr<Cairo::Context> context = Cairo::Context::create (surface);
   context->set_scaled_font (m_font);
   context->set_source_rgb (textColour.red (), textColour.green (), textColour.blue ());
-  context->move_to (0, height - 6);
+  context->move_to (0, 0.75 * height);
   context->show_text (*line);
 
   lineImage.set (surface, width, height, line);
