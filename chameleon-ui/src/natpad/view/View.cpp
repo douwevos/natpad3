@@ -6,8 +6,10 @@
  */
 
 #include <natpad/view/View.h>
+#include <natpad/Editor.h>
+#include <natpad/util/UniqueArrayPtr.h>
 
-View::View (void) {
+View::View (Editor& owningEditor) : m_editor (owningEditor) {
   m_view_y = 0;
   m_layout_height = 100;
 }
@@ -22,6 +24,7 @@ void View::setVerticalAdjustment (Glib::RefPtr<Gtk::Adjustment> vertical_adjustm
   printf ("setAdjustments:%p\n", vertical_adjustment);
   this->m_vertical_adjustment = vertical_adjustment;
 }
+
 void View::setLayoutHeight (long long int height) {
   printf ("View::setLayoutHeight: w=%lld\n", height);
 
@@ -51,35 +54,64 @@ void View::setLayoutHeight (long long int height) {
 //}
 
 void View::draw (const Cairo::RefPtr<Cairo::Context>& cr) {
-  cr->translate (0, -m_view_y);
+  cr->translate (0, -m_view_y); /* @Douwe: Deze regel lijkt nodig voor het scrollen... Waarom is dat? */
 
-  /*
-   cr->set_source_rgb (1.0, 0.0, 0.0);
-   cr->move_to (0, 0);
-   cr->line_to (1000, 3000);
-   cr->stroke ();
-   */
   cr->set_source_rgb (0.0, 0.0, 0.0);
   cr->rectangle (0, 0, 1024, 5000);
   cr->fill ();
 
+
   if (m_textmodel) {
-    double delta = 24;
-    double y = delta;
+    setFont (cr);
 
-    cr->set_source_rgb (0.7, 0.7, 0.7);
-    cr->set_font_size (24);
-    cr->select_font_face ("Courier New", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL);
-
-    int lineCount = m_textmodel->lineCount ();
+    Colour textColour (0.7, 0.7, 0.7);
+    const int lineCount = m_textmodel->lineCount ();
+    UniqueArrayPtr<LineImage> lineImages (new LineImage[lineCount]);
     for (int i = 0; i < lineCount; ++i) {
-      shared_ptr<const string> line = m_textmodel->lineAt (i);
-      cr->move_to (0, y);
-      cr->show_text (*line);
+      initLineImage (lineImages[i], m_textmodel->lineAt (i), cr->get_scaled_font (), textColour);
+    }
+
+    const double delta = m_fontSize;
+    double y = 3;
+
+    for (int i = 0; i < lineCount; ++i) {
+      cr->set_source (lineImages[i].surface (), 0, y);
+      cr->rectangle (0, y, lineImages[i].width (), lineImages[i].height ());
+      cr->fill ();
       y += delta;
     }
   }
+}
 
+void View::initLineImage (LineImage& lineImage,
+    shared_ptr<const string> line,
+    Cairo::RefPtr<Cairo::ScaledFont> font,
+    const Colour& textColour) {
+  Cairo::TextExtents extent;
+  font->text_extents (*line, extent);
+  const double width = extent.x_advance;
+  const double height = m_fontSize;
+
+  Glib::RefPtr<Gdk::Window> window = m_editor.get_window ();
+  Cairo::RefPtr<Cairo::Surface> surface;
+  if (window) {
+    surface = window->create_similar_surface (Cairo::CONTENT_COLOR, width, height);
+  } else {
+    surface = Cairo::ImageSurface::create (Cairo::FORMAT_ARGB32, width, height);
+  }
+
+  Cairo::RefPtr<Cairo::Context> context = Cairo::Context::create (surface);
+  context->set_scaled_font (font);
+  context->set_source_rgb (textColour.red (), textColour.green (), textColour.blue ());
+  context->move_to (0, height - 6);
+  context->show_text (*line);
+
+  lineImage.set (surface, width, height);
+}
+
+void View::setFont (const Cairo::RefPtr<Cairo::Context>& cr) {
+  cr->set_font_size (m_fontSize);
+  cr->select_font_face ("Courier New", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL);
 }
 
 void View::setTextModel (shared_ptr<const TextModel> textmodel) {
