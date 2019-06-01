@@ -13,6 +13,7 @@
 #include <natpad/textmodel/TextModel.h>
 #include <natpad/view/Colour.h>
 #include <natpad/view/LineImage.h>
+#include <natpad/util/UniqueArray.h>
 
 class Editor;
 
@@ -39,12 +40,13 @@ private:
   Glib::RefPtr<Gtk::Adjustment> m_vertical_adjustment;
   shared_ptr<const TextModel> m_textmodel;
   Editor& m_editor;
+  Cairo::RefPtr<Cairo::ScaledFont> m_font;
+  UniqueArray<LineImage> m_lineImages;
 
   void initLineImage (LineImage& lineImage,
       shared_ptr<const string> line,
-      Cairo::RefPtr<Cairo::ScaledFont> font,
       const Colour& textColour);
-  void setFont (const Cairo::RefPtr<Cairo::Context>& cr);
+  void invalidateLines (void);
 };
 
 #endif /* NATPAD_VIEW_VIEW_H_ */
