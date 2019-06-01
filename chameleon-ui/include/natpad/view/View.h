@@ -8,6 +8,7 @@
 #ifndef NATPAD_VIEW_VIEW_H_
 #define NATPAD_VIEW_VIEW_H_
 
+#include <cstdint>
 #include <glibmm-2.4/glibmm.h>
 #include <gtkmm.h>
 #include <natpad/textmodel/TextModel.h>
@@ -23,19 +24,22 @@ public:
 
   void setVerticalAdjustment (Glib::RefPtr<Gtk::Adjustment> vertical_adjustment);
 
-  void setLayoutHeight (long long int height);
+  void setLayoutHeight (int64_t height);
 
-  long long set_view_y (long long y_pos);
+  int64_t set_view_y (int64_t y_pos);
+
+  void setHeight (int64_t height);
 
   void draw (const Cairo::RefPtr<Cairo::Context>& cr);
 
   void setTextModel (shared_ptr<const TextModel> textmodel);
 
 private:
-  static constexpr double m_fontSize = 24;
+  static constexpr int m_fontSize = 24;
 
-  long long m_view_y;
-  long long int m_layout_height;
+  int64_t m_view_y;
+  int64_t m_viewHeight;
+  int64_t m_layout_height;
 
   Glib::RefPtr<Gtk::Adjustment> m_vertical_adjustment;
   shared_ptr<const TextModel> m_textmodel;
@@ -43,6 +47,7 @@ private:
   Cairo::RefPtr<Cairo::ScaledFont> m_font;
   UniqueArray<LineImage> m_lineImages;
 
+  int findIndexOfLineImage (const string& text);
   void initLineImage (LineImage& lineImage,
       shared_ptr<const string> line,
       const Colour& textColour);

@@ -30,6 +30,12 @@ Editor::Editor (void) :
   show ();
 }
 
+void Editor::on_size_allocate (Gtk::Allocation& allocation) {
+  if (m_view != nullptr)
+    m_view->setHeight (allocation.get_height ());
+  Gtk::Widget::on_size_allocate (allocation);
+}
+
 Editor::~Editor (void) {
   if (m_view != nullptr) {
     delete m_view;
@@ -74,6 +80,7 @@ void Editor::on_realize () {
   }
   m_view->setLayoutHeight (3000);
   m_view->setTextModel (createTextModel ());
+  m_view->setHeight (window->get_height ());
 
 // for later user
 //
@@ -133,10 +140,10 @@ void Editor::on_property_value_vadjustment () {
 void Editor::l_set_vadjustment () {
   printf ("Editor::l_set_vadjustment:\n");
 
-  glong aval = (glong) property_vadjustment ().get_value ()->get_value ();
+  int64_t aval = property_vadjustment ().get_value ()->get_value ();
 
-  long long old = m_view->set_view_y (aval);
-  long long dy = old - aval;
+  int64_t old = m_view->set_view_y (aval);
+  int dy = old - aval;
   printf ("scroll-v:%d, %d\n", (int) dy, (int) aval);
 
 //    if (priv->depreacated_scrolling) {
