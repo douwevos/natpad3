@@ -17,36 +17,26 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef PAGE_TEST_INCLUDED
-#define PAGE_TEST_INCLUDED
+#ifndef STRING_INFO_TEST_INCLUDED
+#define STRING_INFO_TEST_INCLUDED
 
 #include <memory>
 #include <testutils/TestCase.h>
 
 using std::unique_ptr;
 
-class PageTest : public TestCase {
+class StringInfoTest : public TestCase {
 public:
-  PageTest (void);
+  StringInfoTest (void);
 
-  static unique_ptr<PageTest> create (void);
+  static unique_ptr<StringInfoTest> create (void);
 
   int getTestCount (void) override;
   const Test* getTests (void) override;
 
-  void testConstructor (void);
-  void testLineAt (void);
-  void testInsert_emptyPage (void);
-  void testInsert_newNonemptyPage (void);
-  void testInsert_beginOfLine (void);
-  void testInsert_middleOfLine (void);
-  void testInsert_endOfLine (void);
-  void testInsert_sameLineAsBefore (void);
-  void testInsert_differentLineAsBefore (void);
-  void testInsert_beforeAddLineNowAddLine (void);
-  void testInsert_beforeAddLineNowDifferentExistingLine (void);
-  void testInsert_multipleLines (void);
-  void testInsert_utf8 (void);
+  void testAll_emptyString (void);
+  void testAll_simpleString (void);
+  void testAll_complexString (void);
 };
 
 #endif

@@ -136,7 +136,7 @@ void View::initLineImage (LineImage& lineImage,
   Glib::RefPtr<Gdk::Window> window = m_editor.get_window ();
   Cairo::RefPtr<Cairo::Surface> surface;
   if (window) {
-    surface = window->create_similar_surface (Cairo::CONTENT_COLOR, width, height);
+    surface = window->create_similar_surface (Cairo::CONTENT_COLOR_ALPHA, width, height);
   } else {
     surface = Cairo::ImageSurface::create (Cairo::FORMAT_ARGB32, width, height);
   }
