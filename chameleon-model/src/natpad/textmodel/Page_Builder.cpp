@@ -99,6 +99,8 @@ void Page::Builder::buildMultipleEditLines (Page* page) {
     }
 
   }
+
+  page->m_editLineInfo.reset (new StringInfo (*page->m_editLine));
 }
 
 void Page::Builder::buildSingleOrNoEditLine (Page* page) {
@@ -118,6 +120,7 @@ void Page::Builder::buildSingleOrNoEditLine (Page* page) {
   if (m_editLineIndex != NO_INDEX) {
     page->m_editLineIndex = m_editLineIndex;
     page->m_editLine = m_editLine;
+    page->m_editLineInfo.reset (new StringInfo (*m_editLine));
   }
 }
 

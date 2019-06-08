@@ -76,7 +76,7 @@ void Editor::on_realize () {
   register_window (window);
 
   if (m_view == nullptr) {
-    m_view = new View (*this);
+    m_view = new View (*this, 24);
   }
   m_view->setLayoutHeight (3000);
   m_view->setTextModel (createTextModel ());

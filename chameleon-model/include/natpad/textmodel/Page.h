@@ -21,16 +21,17 @@
 #define __NATPAD_TEXTMODEL_PAGE_INCLUDED
 
 #include <memory>
-#include <string>
 #include <natpad/textmodel/Cursor.h>
+#include <natpad/util/StringInfo.h>
 
 using std::shared_ptr;
-using std::string;
+using std::unique_ptr;
 
 class Page {
 private:
   shared_ptr<shared_ptr<const string>> m_lines;
   shared_ptr<const string> m_editLine;
+  unique_ptr<StringInfo> m_editLineInfo;
   int m_editLineIndex;
   int m_lineCount;
 
@@ -76,7 +77,7 @@ public:
   };
 
 private:
-  void validateCursorForInsert (const Cursor& cursor) const;
+  unique_ptr<StringInfo> validateCursorForInsert (const Cursor& cursor) const;
 };
 
 #endif

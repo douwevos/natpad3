@@ -33,10 +33,13 @@ private:
   shared_ptr<const string> m_text;
   double m_width;
   double m_height;
+  int m_lineIndex;
 
 public:
   double height (void) const;
-  void set (Cairo::RefPtr<Cairo::Surface> surface, double width, double height, shared_ptr<const string> text);
+  int lineIndex (void) const;
+  void set (Cairo::RefPtr<Cairo::Surface> surface, double width, double height, shared_ptr<const string> text, int lineIndex);
+  void setLineIndex (int lineIndex);
   Cairo::RefPtr<Cairo::Surface> surface (void) const;
   shared_ptr<const string> text (void) const;
   double width (void) const;
