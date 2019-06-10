@@ -14,6 +14,7 @@
 #include <gtkmm/scrollable.h>
 #include <gtkmm/adjustment.h>
 #include <glibmm.h>
+#include <natpad/textmodel/TextDocument.h>
 #include <natpad/view/View.h>
 
 using std::shared_ptr;
@@ -25,7 +26,8 @@ public:
   Editor& operator= (const Editor&) = delete;
   Editor (Editor&&) = delete;
   Editor& operator= (Editor&&) = delete;
-  virtual ~Editor (void);
+
+  shared_ptr<TextDocument> getTextDocument (void);
 
   void on_property_value_hadjustment ();
   void on_property_value_vadjustment ();
@@ -45,7 +47,8 @@ protected:
   //  void on_unrealize() override;
 
 private:
-  View* m_view;
+  shared_ptr<View> m_view;
+  shared_ptr<TextDocument> m_textDocument;
 
   Glib::RefPtr<Gtk::Adjustment> m_vertical_adjustment;
   sigc::connection m_s_vertical_adjustment;

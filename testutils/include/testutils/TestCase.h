@@ -54,6 +54,6 @@ protected:
 
 #define assertEquals(expected, actual) assertEquals (__LINE__, expected, actual)
 #define assertTrue(condition) assertTrue (__LINE__, condition)
-#define fail(message) fail (__LINE__, message)
+#define FAIL(message) fail (__LINE__, message)
 
 #endif

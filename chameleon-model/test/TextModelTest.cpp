@@ -281,13 +281,13 @@ void TextModelTest::testLineAt (void) {
 
   try {
     model.lineAt (model.m_lineCount);
-    fail ("out_of_range exception expected.");
+    FAIL ("out_of_range exception expected.");
   } catch (std::out_of_range& x) {
   }
 
   try {
     model.lineAt (-1);
-    fail ("out_of_range exception expected.");
+    FAIL ("out_of_range exception expected.");
   } catch (std::out_of_range& x) {
   }
 }

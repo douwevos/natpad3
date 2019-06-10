@@ -9,7 +9,6 @@
 #include <glibmm.h>
 #include <glibmm/objectbase.h>
 #include <natpad/Editor.h>
-#include <natpad/textmodel/TextModel.h>
 
 static shared_ptr<const TextModel> createTextModel (void) {
   TextModel emptyModel;
@@ -22,7 +21,7 @@ Editor::Editor (void) :
         m_vadjustment (*this, "vadjustment"),
         m_hscroll_policy (*this, "hscroll-policy", Gtk::SCROLL_NATURAL),
         m_vscroll_policy (*this, "vscroll-policy", Gtk::SCROLL_NATURAL),
-        m_view (nullptr)
+        m_textDocument (new TextDocument)
 {
   property_vadjustment ().signal_changed ().connect (sigc::mem_fun (*this, &Editor::on_property_value_vadjustment));
   set_app_paintable ();
@@ -31,15 +30,13 @@ Editor::Editor (void) :
 }
 
 void Editor::on_size_allocate (Gtk::Allocation& allocation) {
-  if (m_view != nullptr)
+  if (m_view)
     m_view->setHeight (allocation.get_height ());
   Gtk::Widget::on_size_allocate (allocation);
 }
 
-Editor::~Editor (void) {
-  if (m_view != nullptr) {
-    delete m_view;
-  }
+shared_ptr<TextDocument> Editor::getTextDocument (void) {
+  return m_textDocument;
 }
 
 bool Editor::on_draw (const Cairo::RefPtr<Cairo::Context>& cr) {
@@ -75,12 +72,13 @@ void Editor::on_realize () {
   set_window (window);
   register_window (window);
 
-  if (m_view == nullptr) {
-    m_view = new View (*this, 24);
+  if (!m_view) {
+    m_view.reset (new View (*this, 24));
+    m_textDocument->addListener (m_view);
   }
   m_view->setLayoutHeight (3000);
-  m_view->setTextModel (createTextModel ());
   m_view->setHeight (window->get_height ());
+  m_textDocument->postTextModel (createTextModel ());
 
 // for later user
 //
@@ -132,7 +130,7 @@ void Editor::on_property_value_vadjustment () {
     vertical_adjustment->set_upper (8000);
     vertical_adjustment->set_page_size (80);
   }
-  if (m_view != nullptr) {
+  if (m_view) {
     m_view->setVerticalAdjustment (vertical_adjustment);
   }
 }

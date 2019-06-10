@@ -120,7 +120,7 @@ void View::invalidateLines (void) {
     ++lastLineIndex;
   }
 
-  if (firstLineIndex >= m_textmodel->lineCount ()) {
+  if (!m_textmodel || firstLineIndex >= m_textmodel->lineCount ()) {
     UniqueArray<LineImage> lineImages;
     m_lineImages = std::move (lineImages);
     return;
@@ -190,10 +190,8 @@ void View::setHeight (int64_t height) {
   invalidateLines ();
 }
 
-void View::setTextModel (shared_ptr<const TextModel> textmodel) {
+void View::onNewTextModel (shared_ptr<const TextModel> textmodel) {
   m_textmodel = textmodel;
-  //m_cursor = textmodel->cursor ();
-  m_cursor.line = 21;
-  m_cursor.column = 13;
+  m_cursor = textmodel->cursor ();
   invalidateLines ();
 }

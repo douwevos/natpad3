@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <glibmm-2.4/glibmm.h>
 #include <gtkmm.h>
+#include <natpad/textmodel/DocumentListener.h>
 #include <natpad/textmodel/TextModel.h>
 #include <natpad/view/Colour.h>
 #include <natpad/view/LineImage.h>
@@ -18,7 +19,7 @@
 
 class Editor;
 
-class View {
+class View : public DocumentListener {
 public:
   View (Editor& owningEditor, int fontSize);
 
@@ -32,7 +33,7 @@ public:
 
   void draw (const Cairo::RefPtr<Cairo::Context>& cr);
 
-  void setTextModel (shared_ptr<const TextModel> textmodel);
+  void onNewTextModel (shared_ptr<const TextModel> textModel) override;
 
 private:
   int64_t m_view_y;
