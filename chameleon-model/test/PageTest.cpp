@@ -43,8 +43,7 @@ static const Test tests[] = {
   &PageTest::testInsert_differentLineAsBefore,
   &PageTest::testInsert_beforeAddLineNowAddLine,
   &PageTest::testInsert_beforeAddLineNowDifferentExistingLine,
-  &PageTest::testInsert_multipleLines,
-  &PageTest::testInsert_utf8
+  &PageTest::testInsert_multipleLines
 };
 
 static unique_ptr<const Page> createEmptyPage (void) {
@@ -314,33 +313,4 @@ void PageTest::testInsert_multipleLines (void) {
   assertEquals (14, newPage->m_editLineIndex);
   assertEquals (34, cursor.column);
   assertEquals (14, cursor.line);
-}
-
-void PageTest::testInsert_utf8 (void) {
-  setTestName (__func__);
-
-  unique_ptr<const Page> page = createEmptyPage ();
-
-  Cursor cursor;
-  shared_ptr<const Page> newPage = page->insert (cursor, "Ontleend aan Friedrich Nietzsche.");
-  assertEquals (33, cursor.column);
-  assertEquals (0, cursor.line);
-
-  newPage = newPage->insert (cursor, u8"\n\n\u201EEr \u017Finkt\u201C - h\u00F6hnt ihr hin und wieder;");
-  assertEquals (38, cursor.column);
-  assertEquals (2, cursor.line);
-
-  cursor.column = 9;
-  newPage = newPage->insert (cursor, u8", er f\u00E4llt jetzt");
-  assertEquals (25, cursor.column);
-  assertEquals (2, cursor.line);
-
-  cursor.line = 3;
-  cursor.column = 0;
-  newPage = newPage->insert (cursor, u8"Die Wahrheit i\u017Ft: er \u017Fteigt zu euch hernieder!");
-  assertEquals (46, cursor.column);
-  assertEquals (3, cursor.line);
-  assertEquals (4, newPage->lineCount ());
-  assertEquals (u8"„Er ſinkt, er fällt jetzt“ - höhnt ihr hin und wieder;", *newPage->lineAt (2));
-  assertEquals (u8"Die Wahrheit iſt: er ſteigt zu euch hernieder!", *newPage->lineAt (3));
 }

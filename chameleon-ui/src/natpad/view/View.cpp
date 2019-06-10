@@ -103,7 +103,7 @@ void View::drawCursor (const Cairo::RefPtr<Cairo::Context>& cr) {
       tempCtxt->rectangle (0, 0, m_charWidth, m_fontSize);
       tempCtxt->fill ();
 
-      cr->set_source_rgb (0.7, 0.7, 0.7);
+      cr->set_source_rgb (1.0, 1.0, 1.0);
       cr->rectangle (viewX, viewY, m_charWidth, m_fontSize);
       cr->fill ();
       cr->set_source_rgb (0.0, 0.0, 0.0);
@@ -130,7 +130,7 @@ void View::invalidateLines (void) {
     lastLineIndex = m_textmodel->lineCount ();
   }
 
-  Colour textColour (0.7, 0.7, 0.7);
+  Colour textColour (1.0, 1.0, 1.0);
   const int lineCount = lastLineIndex - firstLineIndex;
   UniqueArray<LineImage> lineImages (lineCount);
   for (int i = 0; i < lineCount; ++i) {

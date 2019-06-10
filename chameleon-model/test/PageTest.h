@@ -46,7 +46,6 @@ public:
   void testInsert_beforeAddLineNowAddLine (void);
   void testInsert_beforeAddLineNowDifferentExistingLine (void);
   void testInsert_multipleLines (void);
-  void testInsert_utf8 (void);
 };
 
 #endif
