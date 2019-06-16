@@ -141,9 +141,9 @@ void View::invalidateLines (void) {
   m_lineImages = std::move (lineImages);
 }
 
-int View::findIndexOfLineImage (const string& text) {
+int View::findIndexOfLineImage (const std::string& text) {
   for (int i = 0; i < m_lineImages.length (); ++i) {
-    if (*m_lineImages[i].text () == text) {
+    if (m_lineImages[i].text () == text) {
       return i;
     }
   }
@@ -151,10 +151,13 @@ int View::findIndexOfLineImage (const string& text) {
 }
 
 void View::initLineImage (LineImage& lineImage,
-    shared_ptr<const string> line,
+    shared_ptr<const String> line,
     const Colour& textColour,
     int lineIndex) {
-  int oldImageIndex = findIndexOfLineImage (*line);
+  StringConvert convert;
+  std::string utf8Line = convert.to_bytes (*line);
+
+  int oldImageIndex = findIndexOfLineImage (utf8Line);
   if (oldImageIndex > -1) {
     //printf ("Reusing old image.\n");
     lineImage = m_lineImages[oldImageIndex];
@@ -164,7 +167,7 @@ void View::initLineImage (LineImage& lineImage,
   //printf ("Creating new image.\n");
 
   Cairo::TextExtents extent;
-  m_font->text_extents (*line, extent);
+  m_font->text_extents (utf8Line, extent);
   const double width = extent.x_advance;
   const double height = m_fontSize;
 
@@ -180,9 +183,9 @@ void View::initLineImage (LineImage& lineImage,
   context->set_scaled_font (m_font);
   context->set_source_rgb (textColour.red (), textColour.green (), textColour.blue ());
   context->move_to (0, 0.79 * height);
-  context->show_text (*line);
+  context->show_text (utf8Line);
 
-  lineImage.set (surface, width, height, line, lineIndex);
+  lineImage.set (surface, width, height, utf8Line, lineIndex);
 }
 
 void View::setHeight (int64_t height) {

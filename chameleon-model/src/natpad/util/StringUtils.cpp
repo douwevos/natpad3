@@ -17,34 +17,33 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include <cstdio>
-#include <sstream>
+#include <natpad/io/StringReader.h>
 #include <natpad/util/StringUtils.h>
 
-static string* getNextLine (istream& stream, int c) {
-  string* result = new string ();
-  while (!(c == EOF || c == '\n')) {
+static String* getNextLine (Reader& stream, int c) {
+  String* result = new String ();
+  while (!(c == Reader::eof || c == '\n')) {
     if (c != '\r')
-      *result += (char) c;
+      *result += (Wchar) c;
     c = stream.get ();
   }
   stream.unget ();
   return result;
 }
 
- vector<shared_ptr<string>> StringUtils::getLines (istream& stream) {
-  vector<shared_ptr<string>> list;
+vector<shared_ptr<String>> StringUtils::getLines (Reader& stream) {
+  vector<shared_ptr<String>> list;
   int c;
   do {
     c = stream.get ();
-    shared_ptr<string> line (getNextLine (stream, c));
+    shared_ptr<String> line (getNextLine (stream, c));
     list.push_back (line);
     c = stream.get ();
-  } while (c != EOF);
+  } while (c != Reader::eof);
   return list;
 }
 
-vector<shared_ptr<string>> StringUtils::getLines (const string& text) {
-  std::stringstream stream (text);
+vector<shared_ptr<String>> StringUtils::getLines (const String& text) {
+  StringReader stream (text);
   return getLines (stream);
 }

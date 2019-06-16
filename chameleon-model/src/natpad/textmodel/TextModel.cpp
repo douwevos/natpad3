@@ -26,8 +26,8 @@
 TextModel::TextModel (void) : m_pageCount (0), m_editPageIndex (NO_INDEX), m_lineCount (0) {
 }
 
-TextModel::TextModel (istream& stream) : TextModel () {
-  vector<shared_ptr<string>> lines = StringUtils::getLines (stream);
+TextModel::TextModel (Reader& stream) : TextModel () {
+  vector<shared_ptr<String>> lines = StringUtils::getLines (stream);
   if (!lines.empty ()) {
     m_lineCount = lines.size ();
     m_pageCount = m_lineCount / Page::preferredSize;
@@ -41,22 +41,22 @@ TextModel::TextModel (istream& stream) : TextModel () {
     int i;
     Page::Builder pageBuilder;
     for (i = 0; i < m_pageCount - 1; ++i) {
-      shared_ptr<const string>* lineArray = new shared_ptr<const string>[Page::preferredSize];
+      shared_ptr<const String>* lineArray = new shared_ptr<const String>[Page::preferredSize];
       for (int j = 0; j < Page::preferredSize; ++j) {
         lineArray[j] = lines[Page::preferredSize * i + j];
       }
       pages[i] =
-          pageBuilder.lines (shared_ptr<shared_ptr<const string>> (lineArray, [] (shared_ptr<const string>* array) { delete[] array; }), Page::preferredSize)
+          pageBuilder.lines (shared_ptr<shared_ptr<const String>> (lineArray, [] (shared_ptr<const String>* array) { delete[] array; }), Page::preferredSize)
                      .build ();
       pageBuilder.reset ();
     }
 
-    shared_ptr<const string>* lineArray = new shared_ptr<const string>[remainder];
+    shared_ptr<const String>* lineArray = new shared_ptr<const String>[remainder];
     for (int j = 0; j < remainder; ++j) {
       lineArray[j] = lines[Page::preferredSize * i + j];
     }
     pages[i] =
-        pageBuilder.lines (shared_ptr<shared_ptr<const string>> (lineArray, [] (shared_ptr<const string>* array) { delete[] array; }), remainder)
+        pageBuilder.lines (shared_ptr<shared_ptr<const String>> (lineArray, [] (shared_ptr<const String>* array) { delete[] array; }), remainder)
                    .build ();
 
     m_pages.reset (pages, [](shared_ptr<const Page>* p) { delete[] p; });
@@ -67,7 +67,7 @@ Cursor TextModel::cursor (void) const {
   return m_cursor;
 }
 
-shared_ptr<const TextModel> TextModel::insert (const Cursor& cursor, const string& text) const {
+shared_ptr<const TextModel> TextModel::insert (const Cursor& cursor, const String& text) const {
   if (cursor.line < 0 || cursor.line > m_lineCount)
     throw std::out_of_range ("Cursor line out of range.");
 
@@ -106,7 +106,13 @@ shared_ptr<const TextModel> TextModel::insert (const Cursor& cursor, const strin
                 .build ();
 }
 
-shared_ptr<const string> TextModel::lineAt (int line) const {
+shared_ptr<const TextModel> TextModel::insert (const Cursor& cursor, const std::string& utf8Text) const {
+  StringConvert convert;
+  String text = convert.from_bytes (utf8Text);
+  return insert (cursor, text);
+}
+
+shared_ptr<const String> TextModel::lineAt (int line) const {
   if (line < 0 || line >= m_lineCount)
     throw std::out_of_range ("Specified line number out of range.");
 

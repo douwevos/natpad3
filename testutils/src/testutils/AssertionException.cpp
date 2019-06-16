@@ -19,7 +19,7 @@
 
 #include <testutils/AssertionException.h>
 
-AssertionException::AssertionException (string message) : m_message (message) {
+AssertionException::AssertionException (const std::string& message) : m_message (message) {
 }
 
 const char* AssertionException::what (void) const noexcept {

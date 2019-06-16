@@ -20,14 +20,12 @@
 #ifndef __TESTUTILS_TEST_CASE_INCLUDED
 #define __TESTUTILS_TEST_CASE_INCLUDED
 
-#include <string>
-
-using std::string;
+#include "../../../chameleon-model/include/natpad/util/string.h"
 
 class TestCase {
 private:
-  string m_testClassName;
-  string m_testName;
+  std::string m_testClassName;
+  std::string m_testName;
 
 protected:
   explicit TestCase (const char* testClassName);
@@ -46,10 +44,12 @@ protected:
   void setTestName (const char* name);
 
   void assertEquals (int lineNo, int expected, int actual);
-  void assertEquals (int lineNo, const string& expected, const string& actual);
+  void assertEquals (int lineNo, const std::string& expected, const std::string& actual);
+  void assertEquals (int lineNo, const std::string& expected, const String& actual);
+  void assertEquals (int lineNo, const String& expected, const String& actual);
   void assertEquals (int lineNo, const void* expected, const void* actual);
   void assertTrue (int lineNo, bool condition);
-  void fail (int lineNo, const string& message);
+  void fail (int lineNo, const std::string& message);
 };
 
 #define assertEquals(expected, actual) assertEquals (__LINE__, expected, actual)

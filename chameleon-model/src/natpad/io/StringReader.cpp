@@ -17,20 +17,19 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef __TESTUTILS_ASSERTION_EXCEPTION_INCLUDED
-#define __TESTUTILS_ASSERTION_EXCEPTION_INCLUDED
+#include <natpad/io/StringReader.h>
 
-#include <stdexcept>
-#include <string>
+StringReader::StringReader (const String& str) : m_buffer (str), m_length (str.length ()), m_index (0) {
+}
 
-class AssertionException : public std::exception {
-private:
-  std::string m_message;
-
-public:
-  explicit AssertionException (const std::string& message);
-
-  const char* what (void) const noexcept override;
-};
-
-#endif
+int StringReader::get (void) {
+  if (m_reread) {
+    m_reread = false;
+  } else if (m_index < m_length) {
+    m_read = m_buffer[m_index];
+    ++m_index;
+  } else {
+    m_read = Reader::eof;
+  }
+  return m_read;
+}

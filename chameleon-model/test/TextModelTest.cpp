@@ -18,12 +18,11 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <map>
-#include <sstream>
 #include <stdexcept>
 #include "TextModelTest.h"
 
-#include <string>
-#include <istream>
+#include <natpad/io/StringReader.h>
+#include <natpad/util/string.h>
 #include <natpad/textmodel/Page.h>
 #define private public
 #include <natpad/textmodel/TextModel.h>
@@ -35,10 +34,10 @@ using Test = void (TextModelTest::*) (void);
 
 static const Test tests[] = {
   &TextModelTest::testConstructor_void,
-  &TextModelTest::testConstructor_istream_noLines,
-  &TextModelTest::testConstructor_istream_lessThanPreferredPageSizeLines,
-  &TextModelTest::testConstructor_istream_exactlyPreferredPageSizeLines,
-  &TextModelTest::testConstructor_istream_moreThanPreferredPageSizeLines,
+  &TextModelTest::testConstructor_Reader_noLines,
+  &TextModelTest::testConstructor_Reader_lessThanPreferredPageSizeLines,
+  &TextModelTest::testConstructor_Reader_exactlyPreferredPageSizeLines,
+  &TextModelTest::testConstructor_Reader_moreThanPreferredPageSizeLines,
   &TextModelTest::testPageAt,
   &TextModelTest::testPageInfoForLine,
   &TextModelTest::testLineAt,
@@ -46,19 +45,19 @@ static const Test tests[] = {
   &TextModelTest::testInsert_modifyLineOrAddAtEnd
 };
 
-static string createLine (int number) {
+static String createLine (int number) {
   char buf[8];
   sprintf (buf, "%05d", number + 1);
-  string result = buf;
-  return result;
+  StringConvert convert;
+  return convert.from_bytes (buf);
 }
 
-static string createLines (int count) {
-  string result;
+static String createLines (int count) {
+  String result;
   result.reserve (6 * count);
   for (int i = 0; i < count; ++i) {
     result += createLine (i);
-    result += '\n';
+    result += (Wchar) '\n';
   }
   if (count > 0)
     result.pop_back ();
@@ -66,12 +65,12 @@ static string createLines (int count) {
 }
 
 static shared_ptr<const Page> createPage (int lineCount, int index = 0) {
-  shared_ptr<const string>* lines = new shared_ptr<const string>[lineCount];
+  shared_ptr<const String>* lines = new shared_ptr<const String>[lineCount];
   for (int i = 0; i < lineCount; ++i) {
-    lines[i] = shared_ptr<const string> (new string (createLine (index++)));
+    lines[i] = shared_ptr<const String> (new String (createLine (index++)));
   }
   Page::Builder builder;
-  return builder.lines (shared_ptr<shared_ptr<const string>> (lines, [] (shared_ptr<const string>* array) { delete[] array; }), lineCount)
+  return builder.lines (shared_ptr<shared_ptr<const String>> (lines, [] (shared_ptr<const String>* array) { delete[] array; }), lineCount)
                 .build ();
 }
 
@@ -101,11 +100,11 @@ void TextModelTest::testConstructor_void (void) {
   assertEquals (0, model.cursor ().column);
 }
 
-void TextModelTest::testConstructor_istream_noLines (void) {
+void TextModelTest::testConstructor_Reader_noLines (void) {
   setTestName (__func__);
 
-  string s = "";
-  std::stringstream stream (s);
+  StringConvert convert;
+  StringReader stream (convert.from_bytes (""));
 
   const TextModel model (stream);
   assertEquals (1, model.lineCount ());
@@ -114,14 +113,14 @@ void TextModelTest::testConstructor_istream_noLines (void) {
   assertEquals ("", *model.m_pages.get ()[0]->lineAt (0));
 }
 
-void TextModelTest::testConstructor_istream_lessThanPreferredPageSizeLines (void) {
+void TextModelTest::testConstructor_Reader_lessThanPreferredPageSizeLines (void) {
   setTestName (__func__);
 
   assertTrue (Page::preferredSize > 10);
   const int expectedLineCount = Page::preferredSize - 1;
 
-  string s = createLines (expectedLineCount);
-  std::stringstream stream (s);
+  String s = createLines (expectedLineCount);
+  StringReader stream (s);
 
   const TextModel model (stream);
   const int lineCount = model.lineCount ();
@@ -135,13 +134,13 @@ void TextModelTest::testConstructor_istream_lessThanPreferredPageSizeLines (void
   }
 }
 
-void TextModelTest::testConstructor_istream_exactlyPreferredPageSizeLines (void) {
+void TextModelTest::testConstructor_Reader_exactlyPreferredPageSizeLines (void) {
   setTestName (__func__);
 
   const int expectedLineCount = Page::preferredSize;
 
-  string s = createLines (expectedLineCount);
-  std::stringstream stream (s);
+  String s = createLines (expectedLineCount);
+  StringReader stream (s);
 
   const TextModel model (stream);
   const int lineCount = model.lineCount ();
@@ -155,13 +154,13 @@ void TextModelTest::testConstructor_istream_exactlyPreferredPageSizeLines (void)
   }
 }
 
-void TextModelTest::testConstructor_istream_moreThanPreferredPageSizeLines (void) {
+void TextModelTest::testConstructor_Reader_moreThanPreferredPageSizeLines (void) {
   setTestName (__func__);
 
   const int expectedLineCount = 3 * Page::preferredSize + 1;
 
-  string s = createLines (expectedLineCount);
-  std::stringstream stream (s);
+  String s = createLines (expectedLineCount);
+  StringReader stream (s);
 
   const TextModel model (stream);
   int lineCount = model.lineCount ();
@@ -261,6 +260,7 @@ void TextModelTest::testPageInfoForLine (void) {
 void TextModelTest::testLineAt (void) {
   setTestName (__func__);
 
+  StringConvert convert;
   shared_ptr<const Page>* pages = new shared_ptr<const Page>[3];
   pages[0] = createPage (Page::preferredSize);
   pages[1] = createPage (Page::preferredSize);
@@ -274,8 +274,8 @@ void TextModelTest::testLineAt (void) {
   model.m_editPageIndex = 1;
 
   for (int i = 0; i < model.m_lineCount; ++i) {
-    shared_ptr<const string> line = model.lineAt (i);
-    int n = std::stoi (*line);
+    shared_ptr<const String> line = model.lineAt (i);
+    int n = std::stoi (convert.to_bytes (*line));
     assertEquals (i + 1, n);
   }
 
@@ -304,20 +304,21 @@ void TextModelTest::testInsert_emptyModel (void) {
 }
 
 /* Auxiliary to TextModelTest::testInsert_modifyLineOrAddAtEnd.  */
-static void updateChangedLinesMap (map<int, string>& changedLines, int lineNo, const string& appendedText) {
-  string& line = changedLines[lineNo];
+static void updateChangedLinesMap (map<int, String>& changedLines, int lineNo, const std::string& appendedText) {
+  StringConvert convert;
+  String& line = changedLines[lineNo];
   if (line.empty () && lineNo < 3 * Page::preferredSize - 1)
     line = createLine (lineNo);
-  line += appendedText;
+  line += convert.from_bytes (appendedText);
 }
 
 void TextModelTest::testInsert_modifyLineOrAddAtEnd (void) {
   setTestName (__func__);
 
-  string s = createLines (3 * Page::preferredSize - 1);
-  std::stringstream stream (s);
+  String s = createLines (3 * Page::preferredSize - 1);
+  StringReader stream (s);
 
-  map<int, string> changedLines;
+  map<int, String> changedLines;
   shared_ptr<const TextModel> textModel = shared_ptr<const TextModel> (new TextModel (stream));
   assertEquals (3, textModel->m_pageCount);
 
@@ -350,8 +351,8 @@ void TextModelTest::testInsert_modifyLineOrAddAtEnd (void) {
   int expectedLineCount = 3 * Page::preferredSize + 1;
   assertEquals (expectedLineCount, textModel->lineCount ());
   for (int i = 0; i < expectedLineCount; ++i) {
-    string str;
-    map<int, string>::iterator iter = changedLines.find (i);
+    String str;
+    map<int, String>::iterator iter = changedLines.find (i);
     if (iter != changedLines.end ()) {
       str = iter->second;
     } else {

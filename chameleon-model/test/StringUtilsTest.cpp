@@ -20,6 +20,8 @@
 #include <natpad/util/StringUtils.h>
 #include "StringUtilsTest.h"
 
+#define L(x) L ## x
+
 using Test = void (StringUtilsTest::*) (void);
 
 static const Test tests[] = {
@@ -44,42 +46,42 @@ const TestCase::Test* StringUtilsTest::getTests (void) {
 void StringUtilsTest::testGetLines (void) {
   setTestName (__func__);
 
-  string data = "";
-  vector<shared_ptr<string>> lines = StringUtils::getLines (data);
+  String data = L("");
+  vector<shared_ptr<String>> lines = StringUtils::getLines (data);
   assertEquals (1, lines.size ());
   assertEquals ("", *lines[0]);
 
-  data = "abcd";
+  data = L("abcd");
   lines = StringUtils::getLines (data);
   assertEquals (1, lines.size ());
   assertEquals ("abcd", *lines[0]);
 
-  data = "\n";
+  data = L("\n");
   lines = StringUtils::getLines (data);
   assertEquals (2, lines.size ());
   assertEquals ("", *lines[0]);
   assertEquals ("", *lines[1]);
 
-  data = "\nabcd";
+  data = L("\nabcd");
   lines = StringUtils::getLines (data);
   assertEquals (2, lines.size ());
   assertEquals ("", *lines[0]);
   assertEquals ("abcd", *lines[1]);
 
-  data = "ab\ncd";
+  data = L("ab\ncd");
   lines = StringUtils::getLines (data);
   assertEquals (2, lines.size ());
   assertEquals ("ab", *lines[0]);
   assertEquals ("cd", *lines[1]);
 
-  data = "ab\ncd\n";
+  data = L("ab\ncd\n");
   lines = StringUtils::getLines (data);
   assertEquals (3, lines.size ());
   assertEquals ("ab", *lines[0]);
   assertEquals ("cd", *lines[1]);
   assertEquals ("", *lines[2]);
 
-  data = "eerste regel\r\n\nderde regel \n  vierde regel";
+  data = L("eerste regel\r\n\nderde regel \n  vierde regel");
   lines = StringUtils::getLines (data);
   assertEquals (4, lines.size ());
   assertEquals ("eerste regel", *lines[0]);

@@ -27,7 +27,7 @@ int LineImage::lineIndex (void) const {
   return m_lineIndex;
 }
 
-void LineImage::set (Cairo::RefPtr<Cairo::Surface> surface, double width, double height, shared_ptr<const string> text, int lineIndex) {
+void LineImage::set (Cairo::RefPtr<Cairo::Surface> surface, double width, double height, const std::string& text, int lineIndex) {
   m_surface = surface;
   m_height = height;
   m_width = width;
@@ -43,7 +43,7 @@ Cairo::RefPtr<Cairo::Surface> LineImage::surface (void) const {
   return m_surface;
 }
 
-shared_ptr<const string> LineImage::text (void) const {
+const std::string& LineImage::text (void) const {
   return m_text;
 }
 

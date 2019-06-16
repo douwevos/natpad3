@@ -20,19 +20,17 @@
 #ifndef __NATPAD_UTIL_STRING_UTILS_INCLUDED
 #define __NATPAD_UTIL_STRING_UTILS_INCLUDED
 
-#include <istream>
 #include <memory>
-#include <string>
 #include <vector>
+#include <natpad/io/Reader.h>
+#include <natpad/util/string.h>
 
-using std::istream;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 
 namespace StringUtils {
-  vector<shared_ptr<string>> getLines (istream& stream);
-  vector<shared_ptr<string>> getLines (const string& text);
+  vector<shared_ptr<String>> getLines (Reader& stream);
+  vector<shared_ptr<String>> getLines (const String& text);
 }
 
 #endif

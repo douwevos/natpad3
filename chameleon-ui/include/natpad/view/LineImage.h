@@ -20,17 +20,13 @@
 #ifndef INCLUDE_NATPAD_VIEW_LINEIMAGE_H_
 #define INCLUDE_NATPAD_VIEW_LINEIMAGE_H_
 
-#include <memory>
 #include <string>
 #include <cairomm/context.h>
-
-using std::shared_ptr;
-using std::string;
 
 class LineImage {
 private:
   Cairo::RefPtr<Cairo::Surface> m_surface;
-  shared_ptr<const string> m_text;
+  std::string m_text;
   double m_width;
   double m_height;
   int m_lineIndex;
@@ -38,10 +34,10 @@ private:
 public:
   double height (void) const;
   int lineIndex (void) const;
-  void set (Cairo::RefPtr<Cairo::Surface> surface, double width, double height, shared_ptr<const string> text, int lineIndex);
+  void set (Cairo::RefPtr<Cairo::Surface> surface, double width, double height, const std::string& text, int lineIndex);
   void setLineIndex (int lineIndex);
   Cairo::RefPtr<Cairo::Surface> surface (void) const;
-  shared_ptr<const string> text (void) const;
+  const std::string& text (void) const;
   double width (void) const;
 };
 

@@ -8,8 +8,6 @@
 #ifndef NATPAD_EDITOR_H_
 #define NATPAD_EDITOR_H_
 
-#include <memory>
-#include <string>
 #include <gtkmm/widget.h>
 #include <gtkmm/scrollable.h>
 #include <gtkmm/adjustment.h>

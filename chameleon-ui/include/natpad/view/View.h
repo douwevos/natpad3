@@ -12,7 +12,6 @@
 #include <glibmm-2.4/glibmm.h>
 #include <gtkmm.h>
 #include <natpad/textmodel/DocumentListener.h>
-#include <natpad/textmodel/TextModel.h>
 #include <natpad/view/Colour.h>
 #include <natpad/view/LineImage.h>
 #include <natpad/util/UniqueArray.h>
@@ -51,9 +50,9 @@ private:
   int m_charWidth;
 
   void drawCursor (const Cairo::RefPtr<Cairo::Context>& cr);
-  int findIndexOfLineImage (const string& text);
+  int findIndexOfLineImage (const std::string& text);
   void initLineImage (LineImage& lineImage,
-      shared_ptr<const string> line,
+      shared_ptr<const String> line,
       const Colour& textColour,
       int lineIndex);
   void invalidateLines (void);
