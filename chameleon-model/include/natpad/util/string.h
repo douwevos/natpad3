@@ -17,20 +17,15 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef __TESTUTILS_ASSERTION_EXCEPTION_INCLUDED
-#define __TESTUTILS_ASSERTION_EXCEPTION_INCLUDED
+#ifndef __NATPAD_UTIL_STRING_INCLUDED
+#define __NATPAD_UTIL_STRING_INCLUDED
 
-#include <stdexcept>
+#include <codecvt>
+#include <locale>
 #include <string>
 
-class AssertionException : public std::exception {
-private:
-  std::string m_message;
-
-public:
-  explicit AssertionException (const std::string& message);
-
-  const char* what (void) const noexcept override;
-};
+using String = std::wstring;
+using Wchar = String::value_type;
+using StringConvert = std::wstring_convert<std::codecvt_utf8<Wchar>, Wchar>;
 
 #endif

@@ -17,7 +17,7 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include <string>
+#include <natpad/util/string.h>
 #include "PageTest.h"
 
 #define private public
@@ -28,6 +28,8 @@
 #define SECOND_LINE "tweede regel"
 #define THIRD_LINE  "derde regel"
 #define FOURTH_LINE "vierde regel"
+
+#define L(x) L ## x
 
 using Test = void (PageTest::*) (void);
 
@@ -51,13 +53,14 @@ static unique_ptr<const Page> createEmptyPage (void) {
 }
 
 static unique_ptr<const Page> createNonemptyPage (void) {
-  shared_ptr<const string>* lines = new shared_ptr<const string>[4];
-  lines[0] = shared_ptr<const string> (new string (FIRST_LINE));
-  lines[1] = shared_ptr<const string> (new string (SECOND_LINE));
-  lines[2] = shared_ptr<const string> (new string (THIRD_LINE));
-  lines[3] = shared_ptr<const string> (new string (FOURTH_LINE));
+  StringConvert convert;
+  shared_ptr<const String>* lines = new shared_ptr<const String>[4];
+  lines[0] = shared_ptr<const String> (new String (convert.from_bytes (FIRST_LINE)));
+  lines[1] = shared_ptr<const String> (new String (convert.from_bytes (SECOND_LINE)));
+  lines[2] = shared_ptr<const String> (new String (convert.from_bytes (THIRD_LINE)));
+  lines[3] = shared_ptr<const String> (new String (convert.from_bytes (FOURTH_LINE)));
   Page* page = new Page;
-  page->m_lines.reset (lines, [] (shared_ptr<const string>* array) { delete[] array; });
+  page->m_lines.reset (lines, [] (shared_ptr<const String>* array) { delete[] array; });
   page->m_lineCount = 4;
   return unique_ptr<const Page> (page);
 }
@@ -102,7 +105,7 @@ void PageTest::testInsert_emptyPage (void) {
   assertEquals (0, page->lineCount ());
 
   Cursor cursor;
-  shared_ptr<const Page> newPage = page->insert (cursor, "Hallo wereld");
+  shared_ptr<const Page> newPage = page->insert (cursor, L("Hallo wereld"));
   assertEquals (1, newPage->lineCount ());
   assertEquals ("Hallo wereld", *newPage->lineAt (0));
 }
@@ -115,7 +118,7 @@ void PageTest::testInsert_newNonemptyPage (void) {
 
   Cursor cursor;
   cursor.line = 4;
-  shared_ptr<const Page> newPage = page->insert (cursor, "vijfde regel");
+  shared_ptr<const Page> newPage = page->insert (cursor, L("vijfde regel"));
   assertEquals (5, newPage->lineCount ());
   assertEquals (FIRST_LINE, *newPage->lineAt (0));
   assertEquals (SECOND_LINE, *newPage->lineAt (1));
@@ -132,7 +135,7 @@ void PageTest::testInsert_beginOfLine (void) {
 
   Cursor cursor;
   cursor.line = 1;
-  shared_ptr<const Page> newPage = page->insert (cursor, "De ");
+  shared_ptr<const Page> newPage = page->insert (cursor, L("De "));
   assertEquals (4, newPage->lineCount ());
   assertEquals (FIRST_LINE, *newPage->lineAt (0));
   assertEquals ("De tweede regel", *newPage->lineAt (1));
@@ -149,7 +152,7 @@ void PageTest::testInsert_middleOfLine (void) {
   Cursor cursor;
   cursor.line = 2;
   cursor.column = 6;
-  shared_ptr<const Page> newPage = page->insert (cursor, "en langste ");
+  shared_ptr<const Page> newPage = page->insert (cursor, L("en langste "));
   assertEquals (4, newPage->lineCount ());
   assertEquals (FIRST_LINE, *newPage->lineAt (0));
   assertEquals (SECOND_LINE, *newPage->lineAt (1));
@@ -166,7 +169,7 @@ void PageTest::testInsert_endOfLine (void) {
   Cursor cursor;
   cursor.line = 3;
   cursor.column = 12;
-  shared_ptr<const Page> newPage = page->insert (cursor, " met toevoeging op het eind");
+  shared_ptr<const Page> newPage = page->insert (cursor, L(" met toevoeging op het eind"));
   assertEquals (4, newPage->lineCount ());
   assertEquals (FIRST_LINE, *newPage->lineAt (0));
   assertEquals (SECOND_LINE, *newPage->lineAt (1));
@@ -181,19 +184,19 @@ void PageTest::testInsert_sameLineAsBefore (void) {
   assertEquals (4, page->lineCount ());
 
   Cursor cursor;
-  shared_ptr<const Page> newPage = page->insert (cursor, "De ");
+  shared_ptr<const Page> newPage = page->insert (cursor, L("De "));
   assertEquals ("De eerste regel", *newPage->lineAt (0));
   assertEquals (3, cursor.column);
   assertEquals (0, cursor.line);
 
   cursor.column = 15;
-  newPage = newPage->insert (cursor, " Volgende zin.");
+  newPage = newPage->insert (cursor, L(" Volgende zin."));
   assertEquals ("De eerste regel Volgende zin.", *newPage->lineAt (0));
   assertEquals (29, cursor.column);
   assertEquals (0, cursor.line);
 
   cursor.column = 15;
-  newPage = newPage->insert (cursor, ".");
+  newPage = newPage->insert (cursor, L("."));
   assertEquals ("De eerste regel. Volgende zin.", *newPage->lineAt (0));
   assertEquals (16, cursor.column);
   assertEquals (0, cursor.line);
@@ -206,10 +209,10 @@ void PageTest::testInsert_differentLineAsBefore (void) {
   assertEquals (4, page->lineCount ());
 
   Cursor cursor;
-  shared_ptr<const Page> newPage = page->insert (cursor, "De ");
+  shared_ptr<const Page> newPage = page->insert (cursor, L("De "));
   cursor.line = 3;
   cursor.column = 7;
-  newPage = newPage->insert (cursor, "en laatste ");
+  newPage = newPage->insert (cursor, L("en laatste "));
   assertEquals ("De eerste regel", *newPage->lineAt (0));
   assertEquals ("vierde en laatste regel", *newPage->lineAt (3));
 }
@@ -222,13 +225,13 @@ void PageTest::testInsert_beforeAddLineNowAddLine (void) {
 
   Cursor cursor;
   cursor.line = 4;
-  shared_ptr<const Page> newPage = page->insert (cursor, "vijfde regel");
+  shared_ptr<const Page> newPage = page->insert (cursor, L("vijfde regel"));
   assertEquals (12, cursor.column);
   assertEquals (4, cursor.line);
 
   ++cursor.line;
   cursor.column = 0;
-  newPage = newPage->insert (cursor, "zesde regel");
+  newPage = newPage->insert (cursor, L("zesde regel"));
   assertEquals (6, newPage->lineCount ());
   assertEquals ("vijfde regel", *newPage->lineAt (4));
   assertEquals ("zesde regel", *newPage->lineAt (5));
@@ -244,10 +247,10 @@ void PageTest::testInsert_beforeAddLineNowDifferentExistingLine (void) {
 
   Cursor cursor;
   cursor.line = 4;
-  shared_ptr<const Page> newPage = page->insert (cursor, "vijfde regel");
+  shared_ptr<const Page> newPage = page->insert (cursor, L("vijfde regel"));
   --cursor.line;
   cursor.column = 12;
-  newPage = newPage->insert (cursor, " is niet meer de laatste.");
+  newPage = newPage->insert (cursor, L(" is niet meer de laatste."));
   assertEquals (5, newPage->lineCount ());
   assertEquals ("vierde regel is niet meer de laatste.", *newPage->lineAt (3));
   assertEquals ("vijfde regel", *newPage->lineAt (4));
@@ -260,7 +263,7 @@ void PageTest::testInsert_multipleLines (void) {
   assertEquals (4, page->lineCount ());
 
   Cursor cursor (0, 6);
-  shared_ptr<const Page> newPage = page->insert (cursor, " test\r\nmet een nieuwe");
+  shared_ptr<const Page> newPage = page->insert (cursor, L(" test\r\nmet een nieuwe"));
   assertEquals (5, newPage->lineCount ());
   assertEquals ("eerste test", *newPage->lineAt (0));
   assertEquals ("met een nieuwe regel", *newPage->lineAt (1));
@@ -273,7 +276,7 @@ void PageTest::testInsert_multipleLines (void) {
 
   cursor.line = 5;
   cursor.column = 0;
-  newPage = newPage->insert (cursor, "\nUit 'de vrolijke wetenschap'\nvan Friedrich Nietzsche:\n---\n");
+  newPage = newPage->insert (cursor, L("\nUit 'de vrolijke wetenschap'\nvan Friedrich Nietzsche:\n---\n"));
   assertEquals (10, newPage->lineCount ());
   assertEquals ("eerste test", *newPage->lineAt (0));
   assertEquals ("met een nieuwe regel", *newPage->lineAt (1));
@@ -291,7 +294,7 @@ void PageTest::testInsert_multipleLines (void) {
 
   cursor.line = 7;
   cursor.column = 24;
-  newPage = newPage->insert (cursor, "\n\nVademecum - Vadetecum\n\nEs lockt dich meine Art und Sprach',\nDu folgest mir, du gehst mir nach?\nGeh nur dir selber treulich nach:-\nSo folgst du mir - gemach! gemach!");
+  newPage = newPage->insert (cursor, L("\n\nVademecum - Vadetecum\n\nEs lockt dich meine Art und Sprach',\nDu folgest mir, du gehst mir nach?\nGeh nur dir selber treulich nach:-\nSo folgst du mir - gemach! gemach!"));
   assertEquals (17, newPage->lineCount ());
   assertEquals ("eerste test", *newPage->lineAt (0));
   assertEquals ("met een nieuwe regel", *newPage->lineAt (1));

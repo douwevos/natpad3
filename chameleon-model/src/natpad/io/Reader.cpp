@@ -17,20 +17,14 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef __TESTUTILS_ASSERTION_EXCEPTION_INCLUDED
-#define __TESTUTILS_ASSERTION_EXCEPTION_INCLUDED
+#include <natpad/io/Reader.h>
 
-#include <stdexcept>
-#include <string>
+Reader::Reader (void) : m_read (-2), m_reread (false) {
+}
 
-class AssertionException : public std::exception {
-private:
-  std::string m_message;
+Reader::~Reader (void) {
+}
 
-public:
-  explicit AssertionException (const std::string& message);
-
-  const char* what (void) const noexcept override;
-};
-
-#endif
+void Reader::unget (void) {
+  m_reread = true;
+}

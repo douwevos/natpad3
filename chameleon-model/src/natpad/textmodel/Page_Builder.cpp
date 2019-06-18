@@ -34,7 +34,7 @@ shared_ptr<const Page> Page::Builder::build (void) {
   Page* page = new Page;
   page->m_lineCount = m_lineCount + appendLine;
 
-  if (m_editLine && m_editLine->find ('\n') != string::npos)
+  if (m_editLine && m_editLine->find ('\n') != String::npos)
     buildMultipleEditLines (page);
   else
     buildSingleOrNoEditLine (page);
@@ -43,13 +43,13 @@ shared_ptr<const Page> Page::Builder::build (void) {
 }
 
 void Page::Builder::buildMultipleEditLines (Page* page) {
-  vector<shared_ptr<string>> linesToInsert = StringUtils::getLines (*m_editLine);
+  vector<shared_ptr<String>> linesToInsert = StringUtils::getLines (*m_editLine);
   page->m_editLine = linesToInsert.back ();
   linesToInsert.pop_back ();
   page->m_lineCount += linesToInsert.size ();
   page->m_editLineIndex = m_editLineIndex + linesToInsert.size ();
-  shared_ptr<const string>* newLineArray = new shared_ptr<const string>[page->m_lineCount];
-  page->m_lines.reset (newLineArray, [](shared_ptr<const string>* array) { delete[] array; });
+  shared_ptr<const String>* newLineArray = new shared_ptr<const String>[page->m_lineCount];
+  page->m_lines.reset (newLineArray, [](shared_ptr<const String>* array) { delete[] array; });
 
   if (m_setIndex == NO_INDEX) {
 
@@ -103,7 +103,7 @@ void Page::Builder::buildMultipleEditLines (Page* page) {
 
 void Page::Builder::buildSingleOrNoEditLine (Page* page) {
   if (m_setIndex != NO_INDEX) {
-    shared_ptr<const string>* newLineArray = new shared_ptr<const string>[page->m_lineCount];
+    shared_ptr<const String>* newLineArray = new shared_ptr<const String>[page->m_lineCount];
     for (int i = 0; i < m_setIndex; ++i) {
       newLineArray[i] = m_lines.get ()[i];
     }
@@ -111,7 +111,7 @@ void Page::Builder::buildSingleOrNoEditLine (Page* page) {
     for (int i = m_setIndex + 1; i < m_lineCount; ++i) {
       newLineArray[i] = m_lines.get ()[i];
     }
-    page->m_lines.reset (newLineArray, [](shared_ptr<const string>* array) { delete[] array; });
+    page->m_lines.reset (newLineArray, [](shared_ptr<const String>* array) { delete[] array; });
   } else {
     page->m_lines = m_lines;
   }
@@ -121,13 +121,13 @@ void Page::Builder::buildSingleOrNoEditLine (Page* page) {
   }
 }
 
-Page::Builder& Page::Builder::editLine (int index, const shared_ptr<const string>& line) {
+Page::Builder& Page::Builder::editLine (int index, const shared_ptr<const String>& line) {
   m_editLineIndex = index;
   m_editLine = line;
   return *this;
 }
 
-Page::Builder& Page::Builder::lines (const shared_ptr<shared_ptr<const string>>& lines, int lineCount) {
+Page::Builder& Page::Builder::lines (const shared_ptr<shared_ptr<const String>>& lines, int lineCount) {
   m_lines = lines;
   m_lineCount = lineCount;
   return *this;
@@ -143,7 +143,7 @@ Page::Builder& Page::Builder::reset (void) {
   return *this;
 }
 
-Page::Builder& Page::Builder::setLine (int index, const shared_ptr<const string>& line) {
+Page::Builder& Page::Builder::setLine (int index, const shared_ptr<const String>& line) {
   if (m_setIndex != NO_INDEX)
     throw std::runtime_error ("Page::Builder::setLine: Modified line already set.");
   m_setIndex = index;

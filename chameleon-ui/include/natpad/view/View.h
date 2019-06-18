@@ -11,16 +11,16 @@
 #include <cstdint>
 #include <glibmm-2.4/glibmm.h>
 #include <gtkmm.h>
-#include <natpad/textmodel/TextModel.h>
+#include <natpad/textmodel/DocumentListener.h>
 #include <natpad/view/Colour.h>
 #include <natpad/view/LineImage.h>
 #include <natpad/util/UniqueArray.h>
 
 class Editor;
 
-class View {
+class View : public DocumentListener {
 public:
-  View (Editor& owningEditor);
+  View (Editor& owningEditor, int fontSize);
 
   void setVerticalAdjustment (Glib::RefPtr<Gtk::Adjustment> vertical_adjustment);
 
@@ -32,11 +32,9 @@ public:
 
   void draw (const Cairo::RefPtr<Cairo::Context>& cr);
 
-  void setTextModel (shared_ptr<const TextModel> textmodel);
+  void onNewTextModel (shared_ptr<const TextModel> textModel) override;
 
 private:
-  static constexpr int m_fontSize = 24;
-
   int64_t m_view_y;
   int64_t m_viewHeight;
   int64_t m_layout_height;
@@ -46,11 +44,17 @@ private:
   Editor& m_editor;
   Cairo::RefPtr<Cairo::ScaledFont> m_font;
   UniqueArray<LineImage> m_lineImages;
+  Cursor m_cursor;
 
-  int findIndexOfLineImage (const string& text);
+  int m_fontSize;
+  int m_charWidth;
+
+  void drawCursor (const Cairo::RefPtr<Cairo::Context>& cr);
+  int findIndexOfLineImage (const std::string& text);
   void initLineImage (LineImage& lineImage,
-      shared_ptr<const string> line,
-      const Colour& textColour);
+      shared_ptr<const String> line,
+      const Colour& textColour,
+      int lineIndex);
   void invalidateLines (void);
 };
 

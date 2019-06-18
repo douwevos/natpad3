@@ -17,20 +17,16 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef __TESTUTILS_ASSERTION_EXCEPTION_INCLUDED
-#define __TESTUTILS_ASSERTION_EXCEPTION_INCLUDED
+#ifndef __NATPAD_TEXTMODEL_DOCUMENT_LISTENER_INCLUDED
+#define __NATPAD_TEXTMODEL_DOCUMENT_LISTENER_INCLUDED
 
-#include <stdexcept>
-#include <string>
+#include <natpad/textmodel/TextModel.h>
 
-class AssertionException : public std::exception {
-private:
-  std::string m_message;
-
+class DocumentListener {
 public:
-  explicit AssertionException (const std::string& message);
+  virtual ~DocumentListener (void);
 
-  const char* what (void) const noexcept override;
+  virtual void onNewTextModel (shared_ptr<const TextModel> textModel) = 0;
 };
 
 #endif

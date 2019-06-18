@@ -17,20 +17,21 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef __TESTUTILS_ASSERTION_EXCEPTION_INCLUDED
-#define __TESTUTILS_ASSERTION_EXCEPTION_INCLUDED
+#ifndef __NATPAD_IO_UTF8_FILE_READER_INCLUDED
+#define __NATPAD_IO_UTF8_FILE_READER_INCLUDED
 
-#include <stdexcept>
+#include <fstream>
 #include <string>
+#include <natpad/io/Reader.h>
 
-class AssertionException : public std::exception {
+class Utf8FileReader : public Reader {
 private:
-  std::string m_message;
+  std::wifstream m_stream;
 
 public:
-  explicit AssertionException (const std::string& message);
+  explicit Utf8FileReader (const std::string& filename);
 
-  const char* what (void) const noexcept override;
+  int get (void) override;
 };
 
 #endif

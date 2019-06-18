@@ -35,10 +35,10 @@ public:
   const Test* getTests (void) override;
 
   void testConstructor_void (void);
-  void testConstructor_istream_noLines (void);
-  void testConstructor_istream_lessThanPreferredPageSizeLines (void);
-  void testConstructor_istream_exactlyPreferredPageSizeLines (void);
-  void testConstructor_istream_moreThanPreferredPageSizeLines (void);
+  void testConstructor_Reader_noLines (void);
+  void testConstructor_Reader_lessThanPreferredPageSizeLines (void);
+  void testConstructor_Reader_exactlyPreferredPageSizeLines (void);
+  void testConstructor_Reader_moreThanPreferredPageSizeLines (void);
   void testPageAt (void);
   void testPageInfoForLine (void);
   void testLineAt (void);

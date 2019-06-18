@@ -17,20 +17,29 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef __TESTUTILS_ASSERTION_EXCEPTION_INCLUDED
-#define __TESTUTILS_ASSERTION_EXCEPTION_INCLUDED
+#include <codecvt>
+#include <locale>
+#include <natpad/io/IOException.h>
+#include <natpad/io/Utf8FileReader.h>
 
-#include <stdexcept>
-#include <string>
+Utf8FileReader::Utf8FileReader (const std::string& filename) : m_stream (filename) {
+  if (m_stream.fail ()) {
+    std::string error = "Could not open file '";
+    error += filename;
+    error += '\'';
+    throw IOException (error);
+  }
+  m_stream.imbue (std::locale (std::locale (), new std::codecvt_utf8<wchar_t>));
+}
 
-class AssertionException : public std::exception {
-private:
-  std::string m_message;
-
-public:
-  explicit AssertionException (const std::string& message);
-
-  const char* what (void) const noexcept override;
-};
-
-#endif
+int Utf8FileReader::get (void) {
+  if (m_reread) {
+    m_reread = false;
+    return m_read;
+  }
+  m_read = m_stream.get ();
+  if (m_read == WEOF) {
+    m_read = Reader::eof;
+  }
+  return m_read;
+}

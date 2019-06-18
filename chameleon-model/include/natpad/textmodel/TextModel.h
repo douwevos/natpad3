@@ -20,10 +20,8 @@
 #ifndef __NATPAD_TEXTMODEL_TEXT_MODEL_INCLUDED
 #define __NATPAD_TEXTMODEL_TEXT_MODEL_INCLUDED
 
-#include <istream>
+#include <natpad/io/Reader.h>
 #include <natpad/textmodel/Page.h>
-
-using std::istream;
 
 class TextModel {
 private:
@@ -36,11 +34,12 @@ private:
 
 public:
   TextModel (void);
-  TextModel (istream& stream);
+  TextModel (Reader& stream);
 
   Cursor cursor (void) const;
-  shared_ptr<const TextModel> insert (const Cursor& cursor, const string& text) const;
-  shared_ptr<const string> lineAt (int line) const;
+  shared_ptr<const TextModel> insert (const Cursor& cursor, const String& text) const;
+  shared_ptr<const TextModel> insert (const Cursor& cursor, const std::string& utf8Text) const;
+  shared_ptr<const String> lineAt (int line) const;
   int lineCount (void) const;
 
 private:

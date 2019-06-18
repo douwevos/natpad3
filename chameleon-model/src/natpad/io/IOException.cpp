@@ -17,20 +17,11 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef __TESTUTILS_ASSERTION_EXCEPTION_INCLUDED
-#define __TESTUTILS_ASSERTION_EXCEPTION_INCLUDED
+#include <natpad/io/IOException.h>
 
-#include <stdexcept>
-#include <string>
+IOException::IOException (const std::string& message) : m_message (message) {
+}
 
-class AssertionException : public std::exception {
-private:
-  std::string m_message;
-
-public:
-  explicit AssertionException (const std::string& message);
-
-  const char* what (void) const noexcept override;
-};
-
-#endif
+const char* IOException::what (void) const noexcept {
+  return m_message.c_str ();
+}

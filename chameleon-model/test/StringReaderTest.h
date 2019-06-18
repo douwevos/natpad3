@@ -17,20 +17,25 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef __TESTUTILS_ASSERTION_EXCEPTION_INCLUDED
-#define __TESTUTILS_ASSERTION_EXCEPTION_INCLUDED
+#ifndef STRING_READER_TEST_INCLUDED
+#define STRING_READER_TEST_INCLUDED
 
-#include <stdexcept>
-#include <string>
+#include <memory>
+#include <testutils/TestCase.h>
 
-class AssertionException : public std::exception {
-private:
-  std::string m_message;
+using std::unique_ptr;
 
+class StringReaderTest : public TestCase {
 public:
-  explicit AssertionException (const std::string& message);
+  StringReaderTest (void);
 
-  const char* what (void) const noexcept override;
+  static unique_ptr<StringReaderTest> create (void);
+
+  int getTestCount (void) override;
+  const Test* getTests (void) override;
+
+  void testGet (void);
+  void testUnget (void);
 };
 
 #endif

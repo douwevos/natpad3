@@ -47,38 +47,51 @@ void TestCase::run (void) {
 
 void TestCase::assertEquals (int lineNo, int expected, int actual) {
   if (expected != actual) {
-    string str = "assertion failed (line " + std::to_string (lineNo);
+    std::string str = "assertion failed (line " + std::to_string (lineNo);
     str += "):\nexpected: " + std::to_string (expected);
     str += "\n  actual: " +  std::to_string (actual);
     throw AssertionException (str);
   }
 }
 
-void TestCase::assertEquals (int lineNo, const string& expected, const string& actual) {
+void TestCase::assertEquals (int lineNo, const std::string& expected, const std::string& actual) {
   if (expected != actual) {
-    string str = "assertion failed (line " + std::to_string (lineNo);
+    std::string str = "assertion failed (line " + std::to_string (lineNo);
     str += "):\nexpected: " + expected;
     str += "\n  actual: " +  actual;
     throw AssertionException (str);
   }
 }
 
+void TestCase::assertEquals (int lineNo, const std::string& expected, const String& actual) {
+  StringConvert convert;
+  std::string act = convert.to_bytes (actual);
+  assertEquals (lineNo, expected, act);
+}
+
+void TestCase::assertEquals (int lineNo, const String& expected, const String& actual) {
+  StringConvert convert;
+  std::string xpc = convert.to_bytes (expected);
+  std::string act = convert.to_bytes (actual);
+  assertEquals (lineNo, xpc, act);
+}
+
 void TestCase::assertEquals (int lineNo, const void* expected, const void* actual) {
   if (expected != actual) {
-    string str = "assertion failed (line " + std::to_string (lineNo) + "): pointers are not equal";
+    std::string str = "assertion failed (line " + std::to_string (lineNo) + "): pointers are not equal";
     throw AssertionException (str);
   }
 }
 
 void TestCase::assertTrue (int lineNo, bool condition) {
   if (!condition) {
-    string str = "assertion failed (line " + std::to_string (lineNo) + ")";
+    std::string str = "assertion failed (line " + std::to_string (lineNo) + ")";
     throw AssertionException (str);
   }
 }
 
-void TestCase::fail (int lineNo, const string& message) {
-  string str = "failed (line " + std::to_string (lineNo) + ")";
+void TestCase::fail (int lineNo, const std::string& message) {
+  std::string str = "failed (line " + std::to_string (lineNo) + ")";
   if (!message.empty ()) {
     str += ": ";
     str += message;

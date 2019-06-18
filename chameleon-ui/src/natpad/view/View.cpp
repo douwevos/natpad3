@@ -9,7 +9,10 @@
 #include <natpad/view/View.h>
 #include <natpad/Editor.h>
 
-View::View (Editor& owningEditor) : m_editor (owningEditor), m_viewHeight (0) {
+#define WINDOW_Y_OFFSET 3
+
+View::View (Editor& owningEditor, int fontSize) :
+    m_editor (owningEditor), m_viewHeight (0), m_fontSize (fontSize) {
   m_view_y = 0;
   m_layout_height = 100;
   Cairo::Matrix fontMatrix (m_fontSize, 0, 0, m_fontSize, 0, 0);
@@ -17,6 +20,10 @@ View::View (Editor& owningEditor) : m_editor (owningEditor), m_viewHeight (0) {
   Cairo::RefPtr<Cairo::ToyFontFace> fontface = Cairo::ToyFontFace::create ("Courier New", Cairo::FONT_SLANT_NORMAL,
       Cairo::FONT_WEIGHT_NORMAL);
   m_font = Cairo::ScaledFont::create (fontface, fontMatrix, ctmMatrix);
+
+  Cairo::TextExtents extents;
+  m_font->text_extents ("A", extents);
+  m_charWidth = extents.x_advance + 0.5;
 }
 
 int64_t View::set_view_y (int64_t y_pos) {
@@ -30,7 +37,6 @@ void View::setVerticalAdjustment (Glib::RefPtr<Gtk::Adjustment> vertical_adjustm
   this->m_vertical_adjustment = vertical_adjustment;
 }
 
-/* @Douwe: Waar is deze voor?  */
 void View::setLayoutHeight (int64_t height) {
   printf ("View::setLayoutHeight: w=%ld\n", height);
 
@@ -67,16 +73,42 @@ void View::draw (const Cairo::RefPtr<Cairo::Context>& cr) {
   cr->fill ();
 
   if (m_textmodel) {
-    printf ("View::draw: Drawing %d lines.\n", m_lineImages.length ());
+    //printf ("View::draw: Drawing %d lines.\n", m_lineImages.length ());
 
     const double delta = m_fontSize;
-    double y = m_view_y + 3;
+    double y = m_view_y + WINDOW_Y_OFFSET;
 
     for (int i = 0; i < m_lineImages.length (); ++i) {
       cr->set_source (m_lineImages[i].surface (), 0, y);
       cr->rectangle (0, y, m_lineImages[i].width (), m_lineImages[i].height ());
       cr->fill ();
       y += delta;
+    }
+    drawCursor (cr);
+  }
+}
+
+void View::drawCursor (const Cairo::RefPtr<Cairo::Context>& cr) {
+  int lineImageCount = m_lineImages.length ();
+  Glib::RefPtr<Gdk::Window> window = m_editor.get_window ();
+  if (window && lineImageCount > 0) {
+    int index = m_cursor.line - m_lineImages[0].lineIndex ();
+    if (index >= 0 && index < lineImageCount) {
+      int64_t viewY = m_view_y + WINDOW_Y_OFFSET + m_fontSize * index;
+      int64_t viewX = m_cursor.column * m_charWidth;
+
+      Cairo::RefPtr<Cairo::Surface> tempSurf = window->create_similar_surface (Cairo::CONTENT_COLOR_ALPHA, m_charWidth, m_fontSize);
+      Cairo::RefPtr<Cairo::Context> tempCtxt = Cairo::Context::create (tempSurf);
+      tempCtxt->set_source (m_lineImages[index].surface (), -viewX, 0);
+      tempCtxt->rectangle (0, 0, m_charWidth, m_fontSize);
+      tempCtxt->fill ();
+
+      cr->set_source_rgb (1.0, 1.0, 1.0);
+      cr->rectangle (viewX, viewY, m_charWidth, m_fontSize);
+      cr->fill ();
+      cr->set_source_rgb (0.0, 0.0, 0.0);
+      cr->mask (tempSurf, viewX, viewY);
+      cr->fill ();
     }
   }
 }
@@ -88,7 +120,7 @@ void View::invalidateLines (void) {
     ++lastLineIndex;
   }
 
-  if (firstLineIndex >= m_textmodel->lineCount ()) {
+  if (!m_textmodel || firstLineIndex >= m_textmodel->lineCount ()) {
     UniqueArray<LineImage> lineImages;
     m_lineImages = std::move (lineImages);
     return;
@@ -98,20 +130,20 @@ void View::invalidateLines (void) {
     lastLineIndex = m_textmodel->lineCount ();
   }
 
-  Colour textColour (0.7, 0.7, 0.7);
+  Colour textColour (1.0, 1.0, 1.0);
   const int lineCount = lastLineIndex - firstLineIndex;
   UniqueArray<LineImage> lineImages (lineCount);
   for (int i = 0; i < lineCount; ++i) {
     int lineIndex = i + firstLineIndex;
-    initLineImage (lineImages[i], m_textmodel->lineAt (lineIndex), textColour);
-    //m_editor.queue_draw_area (0, lineIndex * m_fontSize, lineImages[i].width (), lineImages[i].height ());
+    initLineImage (lineImages[i], m_textmodel->lineAt (lineIndex), textColour, lineIndex);
+    m_editor.queue_draw_area (0, lineIndex * m_fontSize + WINDOW_Y_OFFSET, lineImages[i].width (), lineImages[i].height ());
   }
   m_lineImages = std::move (lineImages);
 }
 
-int View::findIndexOfLineImage (const string& text) {
+int View::findIndexOfLineImage (const std::string& text) {
   for (int i = 0; i < m_lineImages.length (); ++i) {
-    if (*m_lineImages[i].text () == text) {
+    if (m_lineImages[i].text () == text) {
       return i;
     }
   }
@@ -119,25 +151,30 @@ int View::findIndexOfLineImage (const string& text) {
 }
 
 void View::initLineImage (LineImage& lineImage,
-    shared_ptr<const string> line,
-    const Colour& textColour) {
-  int oldImageIndex = findIndexOfLineImage (*line);
+    shared_ptr<const String> line,
+    const Colour& textColour,
+    int lineIndex) {
+  StringConvert convert;
+  std::string utf8Line = convert.to_bytes (*line);
+
+  int oldImageIndex = findIndexOfLineImage (utf8Line);
   if (oldImageIndex > -1) {
-    printf ("Reusing old image.\n");
+    //printf ("Reusing old image.\n");
     lineImage = m_lineImages[oldImageIndex];
+    lineImage.setLineIndex (lineIndex);
     return;
   }
-  printf ("Creating new image.\n");
+  //printf ("Creating new image.\n");
 
   Cairo::TextExtents extent;
-  m_font->text_extents (*line, extent);
+  m_font->text_extents (utf8Line, extent);
   const double width = extent.x_advance;
   const double height = m_fontSize;
 
   Glib::RefPtr<Gdk::Window> window = m_editor.get_window ();
   Cairo::RefPtr<Cairo::Surface> surface;
   if (window) {
-    surface = window->create_similar_surface (Cairo::CONTENT_COLOR, width, height);
+    surface = window->create_similar_surface (Cairo::CONTENT_COLOR_ALPHA, width, height);
   } else {
     surface = Cairo::ImageSurface::create (Cairo::FORMAT_ARGB32, width, height);
   }
@@ -145,10 +182,10 @@ void View::initLineImage (LineImage& lineImage,
   Cairo::RefPtr<Cairo::Context> context = Cairo::Context::create (surface);
   context->set_scaled_font (m_font);
   context->set_source_rgb (textColour.red (), textColour.green (), textColour.blue ());
-  context->move_to (0, height - 6);
-  context->show_text (*line);
+  context->move_to (0, 0.79 * height);
+  context->show_text (utf8Line);
 
-  lineImage.set (surface, width, height, line);
+  lineImage.set (surface, width, height, utf8Line, lineIndex);
 }
 
 void View::setHeight (int64_t height) {
@@ -156,7 +193,8 @@ void View::setHeight (int64_t height) {
   invalidateLines ();
 }
 
-void View::setTextModel (shared_ptr<const TextModel> textmodel) {
+void View::onNewTextModel (shared_ptr<const TextModel> textmodel) {
   m_textmodel = textmodel;
+  m_cursor = textmodel->cursor ();
   invalidateLines ();
 }
