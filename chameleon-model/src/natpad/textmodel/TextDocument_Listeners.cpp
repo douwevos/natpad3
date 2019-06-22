@@ -26,9 +26,11 @@ void TextDocument::Listeners::add (const shared_ptr<DocumentListener>& listener)
 }
 
 void TextDocument::Listeners::forEach (const function<void(shared_ptr<DocumentListener>&)>& consumer) {
-  for (weak_ptr<DocumentListener> listener : m_listeners) {
-    if (shared_ptr<DocumentListener> aliveListener = listener.lock ()) {
-      consumer (aliveListener);
+  for (int i = m_listeners.size () - 1; i > -1; --i) {
+    if (shared_ptr<DocumentListener> listener = m_listeners[i].lock ()) {
+      consumer (listener);
+    } else {
+      m_listeners.erase (m_listeners.begin () + i);
     }
   }
 }
