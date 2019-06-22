@@ -113,6 +113,15 @@ void View::drawCursor (const Cairo::RefPtr<Cairo::Context>& cr) {
   }
 }
 
+Cursor View::getCursor (void) {
+  return m_cursor;
+}
+
+void View::setCursor (const Cursor& cursor) {
+  m_cursor = cursor;
+  invalidateLines ();
+}
+
 void View::invalidateLines (void) {
   int firstLineIndex = m_view_y / m_fontSize;
   int lastLineIndex = (m_view_y + m_viewHeight) / m_fontSize;
@@ -156,6 +165,7 @@ void View::initLineImage (LineImage& lineImage,
     int lineIndex) {
   StringConvert convert;
   std::string utf8Line = convert.to_bytes (*line);
+  utf8Line += ' '; /* To help draw the cursor at the end of the line.  */
 
   int oldImageIndex = findIndexOfLineImage (utf8Line);
   if (oldImageIndex > -1) {

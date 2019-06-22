@@ -9,6 +9,7 @@
 #include <glibmm.h>
 #include <glibmm/objectbase.h>
 #include <natpad/Editor.h>
+#include <natpad/keybindings/EmacsKeyBindings.h>
 
 static shared_ptr<const TextModel> createTextModel (void) {
   TextModel emptyModel;
@@ -21,12 +22,17 @@ Editor::Editor (void) :
         m_vadjustment (*this, "vadjustment"),
         m_hscroll_policy (*this, "hscroll-policy", Gtk::SCROLL_NATURAL),
         m_vscroll_policy (*this, "vscroll-policy", Gtk::SCROLL_NATURAL),
-        m_textDocument (new TextDocument)
+        m_textDocument (new TextDocument),
+        m_keyBindings (new EmacsKeyBindings)
 {
   property_vadjustment ().signal_changed ().connect (sigc::mem_fun (*this, &Editor::on_property_value_vadjustment));
   set_app_paintable ();
   set_can_focus ();
   show ();
+}
+
+Editor::~Editor (void) {
+  delete m_keyBindings;
 }
 
 void Editor::on_size_allocate (Gtk::Allocation& allocation) {
@@ -41,6 +47,33 @@ shared_ptr<TextDocument> Editor::getTextDocument (void) {
 
 bool Editor::on_draw (const Cairo::RefPtr<Cairo::Context>& cr) {
   m_view->draw (cr);
+  return true;
+}
+
+bool Editor::on_key_press_event (GdkEventKey* keyEvent) {
+  bool ctrl = (keyEvent->state & GDK_CONTROL_MASK) != 0;
+  bool alt = (keyEvent->state & GDK_MOD1_MASK) != 0;
+  bool shift = (keyEvent->state & GDK_SHIFT_MASK) != 0;
+  int key = keyEvent->keyval;
+
+  KeyCommand command = m_keyBindings->getCommand ({key, ctrl, alt, shift});
+  switch (command) {
+  case KeyCommand::cursorBack:
+    moveCursorBack ();
+    break;
+
+  case KeyCommand::cursorForward:
+    moveCursorForward ();
+    break;
+
+  case KeyCommand::cursorLineDown:
+    moveCursorDown ();
+    break;
+
+  case KeyCommand::cursorLineUp:
+    moveCursorUp ();
+    break;
+  }
   return true;
 }
 
@@ -71,6 +104,7 @@ void Editor::on_realize () {
   Glib::RefPtr<Gdk::Window> window = Gdk::Window::create (get_parent_window (), &attributes, attributes_mask);
   set_window (window);
   register_window (window);
+  window->set_events (window->get_events () | Gdk::EventMask::KEY_PRESS_MASK); //I seem to get key events whether I do this or not...
 
   if (!m_view) {
     m_view.reset (new View (*this, 24));
@@ -156,4 +190,60 @@ void Editor::l_set_vadjustment () {
   window->process_updates (true);
 //		cha_document_view_set_in_scroll(priv->document_view, FALSE);
 //	  }
+}
+
+void Editor::moveCursorBack (void) {
+  Cursor cursor = m_view->getCursor ();
+  if (cursor.column == 0) {
+    if (cursor.line == 0)
+      return;
+    --cursor.line;
+    shared_ptr<const String> line = m_textDocument->getTextModel ()->lineAt (cursor.line);
+    cursor.column = line->length ();
+  } else {
+    --cursor.column;
+  }
+  m_view->setCursor (cursor);
+}
+
+void Editor::moveCursorDown (void) {
+  Cursor cursor = m_view->getCursor ();
+  shared_ptr<const TextModel> textModel = m_textDocument->getTextModel ();
+  if (cursor.line >= textModel->lineCount () - 1) {
+    return;
+  }
+  ++cursor.line;
+  shared_ptr<const String> line = textModel->lineAt (cursor.line);
+  if (cursor.column > line->length()) {
+    cursor.column = line->length ();
+  }
+  m_view->setCursor (cursor);
+}
+
+void Editor::moveCursorForward (void) {
+  Cursor cursor = m_view->getCursor ();
+  shared_ptr<const TextModel> textModel = m_textDocument->getTextModel ();
+  shared_ptr<const String> line = textModel->lineAt (cursor.line);
+  if (cursor.column == line->length ()) {
+    if (cursor.line == textModel->lineCount () - 1) {
+      return;
+    }
+    ++cursor.line;
+    cursor.column = 0;
+  } else {
+    ++cursor.column;
+  }
+  m_view->setCursor (cursor);
+}
+
+void Editor::moveCursorUp (void) {
+  Cursor cursor = m_view->getCursor ();
+  if (cursor.line == 0)
+    return;
+  --cursor.line;
+  shared_ptr<const String> line = m_textDocument->getTextModel ()->lineAt (cursor.line);
+  if (cursor.column > line->length()) {
+    cursor.column = line->length ();
+  }
+  m_view->setCursor (cursor);
 }

@@ -22,6 +22,10 @@ class View : public DocumentListener {
 public:
   View (Editor& owningEditor, int fontSize);
 
+  Cursor getCursor (void);
+
+  void setCursor (const Cursor& cursor);
+
   void setVerticalAdjustment (Glib::RefPtr<Gtk::Adjustment> vertical_adjustment);
 
   void setLayoutHeight (int64_t height);
