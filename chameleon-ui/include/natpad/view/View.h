@@ -26,13 +26,15 @@ public:
 
   void setCursor (const Cursor& cursor);
 
+  int getLineHeight ();
+
   void setVerticalAdjustment (Glib::RefPtr<Gtk::Adjustment> vertical_adjustment);
 
   void setLayoutHeight (int64_t height);
 
   int64_t set_view_y (int64_t y_pos);
 
-  void setHeight (int64_t height);
+  void setDimensions (int64_t width, int64_t height);
 
   void draw (const Cairo::RefPtr<Cairo::Context>& cr);
 
@@ -41,6 +43,7 @@ public:
 private:
   int64_t m_view_y;
   int64_t m_viewHeight;
+  int64_t m_viewWidth;
   int64_t m_layout_height;
 
   Glib::RefPtr<Gtk::Adjustment> m_vertical_adjustment;

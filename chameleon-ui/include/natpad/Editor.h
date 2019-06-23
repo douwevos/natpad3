@@ -55,6 +55,7 @@ private:
 
   Glib::RefPtr<Gtk::Adjustment> m_vertical_adjustment;
   sigc::connection m_s_vertical_adjustment;
+  int m_cursorColumn;
 
   void l_set_vadjustment ();
 

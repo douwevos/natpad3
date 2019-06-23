@@ -23,7 +23,8 @@ Editor::Editor (void) :
         m_hscroll_policy (*this, "hscroll-policy", Gtk::SCROLL_NATURAL),
         m_vscroll_policy (*this, "vscroll-policy", Gtk::SCROLL_NATURAL),
         m_textDocument (new TextDocument),
-        m_keyBindings (new EmacsKeyBindings)
+        m_keyBindings (new EmacsKeyBindings),
+        m_cursorColumn (0)
 {
   property_vadjustment ().signal_changed ().connect (sigc::mem_fun (*this, &Editor::on_property_value_vadjustment));
   set_app_paintable ();
@@ -37,7 +38,7 @@ Editor::~Editor (void) {
 
 void Editor::on_size_allocate (Gtk::Allocation& allocation) {
   if (m_view)
-    m_view->setHeight (allocation.get_height ());
+    m_view->setDimensions (allocation.get_width (), allocation.get_height ());
   Gtk::Widget::on_size_allocate (allocation);
 }
 
@@ -74,6 +75,13 @@ bool Editor::on_key_press_event (GdkEventKey* keyEvent) {
     moveCursorUp ();
     break;
   }
+
+  if (!(command == KeyCommand::cursorLineUp ||
+        command == KeyCommand::cursorLineDown ||
+        command == KeyCommand::none)) {
+    m_cursorColumn = 0;
+  }
+
   return true;
 }
 
@@ -111,7 +119,7 @@ void Editor::on_realize () {
     m_textDocument->addListener (m_view);
   }
   m_view->setLayoutHeight (3000);
-  m_view->setHeight (window->get_height ());
+  m_view->setDimensions (window->get_width (), window->get_height ());
   m_textDocument->postTextModel (createTextModel ());
 
 // for later user
@@ -173,6 +181,7 @@ void Editor::l_set_vadjustment () {
   printf ("Editor::l_set_vadjustment:\n");
 
   int64_t aval = property_vadjustment ().get_value ()->get_value ();
+  aval -= aval % m_view->getLineHeight ();
 
   int64_t old = m_view->set_view_y (aval);
   int dy = old - aval;
@@ -212,6 +221,12 @@ void Editor::moveCursorDown (void) {
   if (cursor.line >= textModel->lineCount () - 1) {
     return;
   }
+
+  if (m_cursorColumn > 0) {
+    cursor.column = m_cursorColumn;
+  } else {
+    m_cursorColumn = cursor.column;
+  }
   ++cursor.line;
   shared_ptr<const String> line = textModel->lineAt (cursor.line);
   if (cursor.column > line->length()) {
@@ -240,6 +255,12 @@ void Editor::moveCursorUp (void) {
   Cursor cursor = m_view->getCursor ();
   if (cursor.line == 0)
     return;
+
+  if (m_cursorColumn > 0) {
+    cursor.column = m_cursorColumn;
+  } else {
+    m_cursorColumn = cursor.column;
+  }
   --cursor.line;
   shared_ptr<const String> line = m_textDocument->getTextModel ()->lineAt (cursor.line);
   if (cursor.column > line->length()) {
