@@ -28,6 +28,7 @@ public:
   virtual ~Editor (void);
 
   shared_ptr<TextDocument> getTextDocument (void);
+  void scrollTo (int lineIndex);
 
   void on_property_value_hadjustment ();
   void on_property_value_vadjustment ();
@@ -62,6 +63,12 @@ private:
   void moveCursorBack (void);
   void moveCursorDown (void);
   void moveCursorForward (void);
+  void moveCursorLineEnd (void);
+  void moveCursorLineStart (void);
+  void moveCursorPageDown (void);
+  void moveCursorPageUp (void);
+  void moveCursorTextEnd (void);
+  void moveCursorTextStart (void);
   void moveCursorUp (void);
 };
 

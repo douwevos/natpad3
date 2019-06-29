@@ -25,12 +25,14 @@ enum class KeyCommand {
 
   cursorBack,
   cursorForward,
-  cursorLineBeginning,
   cursorLineDown,
   cursorLineEnd,
+  cursorLineStart,
   cursorLineUp,
   cursorPageDown,
-  cursorPageUp
+  cursorPageUp,
+  cursorTextEnd,
+  cursorTextStart
 };
 
 #endif

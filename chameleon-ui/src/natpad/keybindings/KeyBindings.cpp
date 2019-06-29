@@ -53,7 +53,7 @@ KeyCommand KeyBindings::getUnmodifiedCommand (int key, bool shift) {
     return KeyCommand::cursorLineEnd;
 
   case GDK_KEY_KP_Home:
-    return KeyCommand::cursorLineBeginning;
+    return KeyCommand::cursorLineStart;
 
   case GDK_KEY_KP_Page_Down:
     return KeyCommand::cursorPageUp;

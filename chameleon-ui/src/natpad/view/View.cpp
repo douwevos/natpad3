@@ -121,7 +121,22 @@ Cursor View::getCursor (void) {
 
 void View::setCursor (const Cursor& cursor) {
   m_cursor = cursor;
-  invalidateLines ();
+
+  int firstLineIndex = m_view_y / LINE_HEIGHT;
+  int lastLineIndex = (m_view_y + m_viewHeight) / LINE_HEIGHT;
+  if (cursor.line < firstLineIndex || cursor.line >= lastLineIndex) {
+    int heightInLines = m_viewHeight / LINE_HEIGHT;
+    if (heightInLines > 1) {
+      firstLineIndex = cursor.line - heightInLines / 2;
+      if (firstLineIndex < 0)
+        firstLineIndex = 0;
+    } else {
+      firstLineIndex = cursor.line;
+    }
+    m_editor.scrollTo (firstLineIndex);
+  } else {
+    invalidateLines ();
+  }
 }
 
 int View::getLineHeight () {

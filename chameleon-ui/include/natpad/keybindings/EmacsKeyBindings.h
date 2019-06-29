@@ -23,10 +23,25 @@
 #include <natpad/keybindings/KeyBindings.h>
 
 class EmacsKeyBindings : public KeyBindings {
+private:
+  enum class PrefixKey {
+    none,
+    ctrl_x,
+    ctrl_x_8,
+    esc,
+    meta_g
+  };
+
+  PrefixKey m_prefixKey;
+
+public:
+  EmacsKeyBindings (void);
+
 protected:
   KeyCommand getAltCommand (int key, bool shift) override;
   KeyCommand getCtrlAltCommand (int key, bool shift) override;
   KeyCommand getCtrlCommand (int key, bool shift) override;
+  KeyCommand getUnmodifiedCommand (int key, bool shift) override;
 };
 
 #endif

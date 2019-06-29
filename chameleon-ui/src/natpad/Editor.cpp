@@ -57,6 +57,10 @@ bool Editor::on_key_press_event (GdkEventKey* keyEvent) {
   bool shift = (keyEvent->state & GDK_SHIFT_MASK) != 0;
   int key = keyEvent->keyval;
 
+  if (key >= 0xFFE1 && key <= 0xFFEA) {
+    return true;
+  }
+
   KeyCommand command = m_keyBindings->getCommand ({key, ctrl, alt, shift});
   switch (command) {
   case KeyCommand::cursorBack:
@@ -71,8 +75,32 @@ bool Editor::on_key_press_event (GdkEventKey* keyEvent) {
     moveCursorDown ();
     break;
 
+  case KeyCommand::cursorLineEnd:
+    moveCursorLineEnd ();
+    break;
+
+  case KeyCommand::cursorLineStart:
+    moveCursorLineStart ();
+    break;
+
   case KeyCommand::cursorLineUp:
     moveCursorUp ();
+    break;
+
+  case KeyCommand::cursorPageDown:
+    moveCursorPageDown ();
+    break;
+
+  case KeyCommand::cursorPageUp:
+    moveCursorPageUp ();
+    break;
+
+  case KeyCommand::cursorTextEnd:
+    moveCursorTextEnd ();
+    break;
+
+  case KeyCommand::cursorTextStart:
+    moveCursorTextStart ();
     break;
   }
 
@@ -201,6 +229,12 @@ void Editor::l_set_vadjustment () {
 //	  }
 }
 
+void Editor::scrollTo (int lineIndex) {
+  int viewY = lineIndex * m_view->getLineHeight ();
+  property_vadjustment ().get_value ()->set_value (viewY); /* This will trigger a call to Editor::l_set_vadjustment().  */
+}
+
+
 void Editor::moveCursorBack (void) {
   Cursor cursor = m_view->getCursor ();
   if (cursor.column == 0) {
@@ -249,6 +283,38 @@ void Editor::moveCursorForward (void) {
     ++cursor.column;
   }
   m_view->setCursor (cursor);
+}
+
+void Editor::moveCursorLineEnd (void) {
+  Cursor cursor = m_view->getCursor ();
+  shared_ptr<const String> line = m_textDocument->getTextModel ()->lineAt (cursor.line);
+  cursor.column = line->length ();
+  m_view->setCursor (cursor);
+}
+
+void Editor::moveCursorLineStart (void) {
+  Cursor cursor = m_view->getCursor ();
+  cursor.column = 0;
+  m_view->setCursor (cursor);
+}
+
+void Editor::moveCursorPageDown (void) {
+  printf ("TO BE IMPLEMENTED: Editor::%s\n", __func__);
+}
+
+void Editor::moveCursorPageUp (void) {
+  printf ("TO BE IMPLEMENTED: Editor::%s\n", __func__);
+}
+
+void Editor::moveCursorTextEnd (void) {
+  shared_ptr<const TextModel> textModel = m_textDocument->getTextModel ();
+  int lineIndex = textModel->lineCount () - 1;
+  shared_ptr<const String> line = textModel->lineAt (lineIndex);
+  m_view->setCursor (Cursor (lineIndex, line->length ()));
+}
+
+void Editor::moveCursorTextStart (void) {
+  m_view->setCursor (Cursor ());
 }
 
 void Editor::moveCursorUp (void) {
