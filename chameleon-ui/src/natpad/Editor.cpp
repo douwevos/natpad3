@@ -13,7 +13,7 @@
 
 static shared_ptr<const TextModel> createTextModel (void) {
   TextModel emptyModel;
-  return emptyModel.insert (Cursor (), "Uit 'de vrol\304\263ke wetenschap' van Friedrich Nietzsche:\n\n1. Einladung.\n\nWagt's mit meiner Ko\305\277t, ihr E\305\277\305\277er!\nMorgen \305\277chmeckt \305\277ie euch \305\277chon be\305\277\305\277er\nUnd \305\277chon \303\274bermorgen gut!\nWollt ihr dann noch mehr,- \305\277o machen\nMeine alten \305\277ieben Sachen\nMir zu \305\277ieben neuen Muth.\n\n2. Mein Gl\303\274ck.\n\nSeit ich des Suchens m\303\274de ward,\nErlernte ich das Finden.\nSeit mir ein Wind hielt Widerpart,\nSegl' ich mit allen Winden.\n\n3. Unverzagt.\n\nWo du \305\277teh\305\277t, grab tief hinein!\nDrunten i\305\277t die Quelle!\nLa\303\237 die dunklen M\303\244nner \305\277chrein:\n\342\200\236Stets i\305\277t drunten - H\303\266lle!\342\200\234\n\n7. Vademecum - Vadetecum\n\nEs lockt dich meine Art und Sprach',\nDu folge\305\277t mir, du geh\305\277t mir nach?\nGeh nur dir \305\277elber treulich nach:-\nSo folg\305\277t du mir - gemach! gemach!\n\n\316\221\316\222\316\223\316\224\n\320\220\320\221\320\222\320\223\320\224\n1\n12\n123\n1234\n1243\nabcd\nABCD\n");
+  return emptyModel.insert (Cursor (), "Uit 'de vrol\304\263ke wetenschap' van Friedrich Nietzsche:\n\n1. Einladung.\n\nWagt's mit meiner Ko\305\277t, ihr E\305\277\305\277er!\nMorgen \305\277chmeckt \305\277ie euch \305\277chon be\305\277\305\277er\nUnd \305\277chon \303\274bermorgen gut!\nWollt ihr dann noch mehr,- \305\277o machen\nMeine alten \305\277ieben Sachen\nMir zu \305\277ieben neuen Muth.\n\n2. Mein Gl\303\274ck.\n\nSeit ich des Suchens m\303\274de ward,\nErlernte ich das Finden.\nSeit mir ein Wind hielt Widerpart,\nSegl' ich mit allen Winden.\n\n3. Unverzagt.\n\nWo du \305\277teh\305\277t, grab tief hinein!\nDrunten i\305\277t die Quelle!\nLa\303\237 die dunklen M\303\244nner \305\277chrein:\n\342\200\236Stets i\305\277t drunten - H\303\266lle!\342\200\234\n\n7. Vademecum - Vadetecum\n\nEs lockt dich meine Art und Sprach',\nDu folge\305\277t mir, du geh\305\277t mir nach?\nGeh nur dir \305\277elber treulich nach:-\nSo folg\305\277t du mir - gemach! gemach!\n\n\316\221\316\222\316\223\316\224\n\320\220\320\221\320\222\320\223\320\224\n1\n12\n123\n1234\n1243\nabcd\nABCD\n\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40\n41\n42\n43\n44\n45\n46\n47\n48\n49\n50\n51\n52\n53\n54\n55\n56\n57\n58\n59\n60\n61\n62\n63\n64\n65\n66\n67\n68\n69\n70\n71\n72\n73\n74\n75\n76\n77\n78\n79\n80\n81\n82\n83\n84\n85\n86\n87\n88\n89\n90\n91\n92\n93\n94\n95\n96\n97\n98\n99\n");
 }
 
 Editor::Editor (void) :
@@ -299,11 +299,65 @@ void Editor::moveCursorLineStart (void) {
 }
 
 void Editor::moveCursorPageDown (void) {
-  printf ("TO BE IMPLEMENTED: Editor::%s\n", __func__);
+  const int maxLineIndex = m_textDocument->getTextModel ()->lineCount () - 1;
+  const int lineHeight = m_view->getLineHeight ();
+  const int viewHeight = m_view->getHeight ();
+  const int64_t viewY = m_view->getViewY ();
+  int firstLineIndex = viewY / lineHeight;
+  int linesOnPageMinusTwo = viewHeight / lineHeight - 2;
+  if (linesOnPageMinusTwo < 1) {
+    /* TODO: We should prevent this situation from occurring.  */
+    linesOnPageMinusTwo = 1;
+  }
+
+  firstLineIndex += linesOnPageMinusTwo;
+  if (firstLineIndex > maxLineIndex) {
+    return;
+  }
+  scrollTo (firstLineIndex);
+
+  int lastLineIndex = firstLineIndex + viewHeight / lineHeight;
+  Cursor cursor = m_view->getCursor ();
+  if (cursor.line < firstLineIndex || cursor.line >= lastLineIndex) {
+    cursor.line = firstLineIndex;
+    cursor.column = 0;
+    m_view->setCursor (cursor);
+  }
 }
 
 void Editor::moveCursorPageUp (void) {
-  printf ("TO BE IMPLEMENTED: Editor::%s\n", __func__);
+  const int lineHeight = m_view->getLineHeight ();
+  const int viewHeight = m_view->getHeight ();
+  const int64_t viewY = m_view->getViewY ();
+  const int oldFirstLineIndex = viewY / lineHeight;
+  int linesOnPageMinusTwo = viewHeight / lineHeight - 2;
+  if (linesOnPageMinusTwo < 1) {
+    /* TODO: We should prevent this situation from occurring.  */
+    if (linesOnPageMinusTwo < 0) {
+      moveCursorUp ();
+      return;
+    }
+    linesOnPageMinusTwo = 1;
+  }
+  if (oldFirstLineIndex == 0) {
+    return;
+  }
+
+  int delta = 0;
+  int firstLineIndex = oldFirstLineIndex - linesOnPageMinusTwo;
+  if (firstLineIndex < 0) {
+    delta = -firstLineIndex;
+    firstLineIndex = 0;
+  }
+  scrollTo (firstLineIndex);
+
+  int lastLineIndex = firstLineIndex + viewHeight / lineHeight;
+  Cursor cursor = m_view->getCursor ();
+  if (cursor.line < firstLineIndex || cursor.line >= lastLineIndex) {
+    cursor.line = oldFirstLineIndex + delta;
+    cursor.column = 0;
+    m_view->setCursor (cursor);
+  }
 }
 
 void Editor::moveCursorTextEnd (void) {

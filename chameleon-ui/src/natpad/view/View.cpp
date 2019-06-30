@@ -27,6 +27,10 @@ View::View (Editor& owningEditor, int fontSize) :
   m_charWidth = extents.x_advance + 0.5;
 }
 
+int64_t View::getViewY (void) const {
+  return m_view_y;
+}
+
 int64_t View::set_view_y (int64_t y_pos) {
   int64_t result = m_view_y;
   m_view_y = y_pos;
@@ -96,26 +100,26 @@ void View::drawCursor (const Cairo::RefPtr<Cairo::Context>& cr) {
     int index = m_cursor.line - m_lineImages[0].lineIndex ();
     if (index >= 0 && index < lineImageCount) {
       int64_t firstLineY = m_lineImages[0].lineIndex () * LINE_HEIGHT;
-      int64_t viewY = firstLineY + WINDOW_Y_OFFSET + LINE_HEIGHT * index;
-      int64_t viewX = m_cursor.column * m_charWidth;
+      int64_t cursorY = firstLineY + WINDOW_Y_OFFSET + LINE_HEIGHT * index;
+      int64_t cursorX = m_cursor.column * m_charWidth;
 
       Cairo::RefPtr<Cairo::Surface> tempSurf = window->create_similar_surface (Cairo::CONTENT_COLOR_ALPHA, m_charWidth, LINE_HEIGHT);
       Cairo::RefPtr<Cairo::Context> tempCtxt = Cairo::Context::create (tempSurf);
-      tempCtxt->set_source (m_lineImages[index].surface (), -viewX, 0);
+      tempCtxt->set_source (m_lineImages[index].surface (), -cursorX, 0);
       tempCtxt->rectangle (0, 0, m_charWidth, LINE_HEIGHT);
       tempCtxt->fill ();
 
       cr->set_source_rgb (1.0, 1.0, 1.0);
-      cr->rectangle (viewX, viewY, m_charWidth, LINE_HEIGHT);
+      cr->rectangle (cursorX, cursorY, m_charWidth, LINE_HEIGHT);
       cr->fill ();
       cr->set_source_rgb (0.0, 0.0, 0.0);
-      cr->mask (tempSurf, viewX, viewY);
+      cr->mask (tempSurf, cursorX, cursorY);
       cr->fill ();
     }
   }
 }
 
-Cursor View::getCursor (void) {
+Cursor View::getCursor (void) const {
   return m_cursor;
 }
 
@@ -126,13 +130,9 @@ void View::setCursor (const Cursor& cursor) {
   int lastLineIndex = (m_view_y + m_viewHeight) / LINE_HEIGHT;
   if (cursor.line < firstLineIndex || cursor.line >= lastLineIndex) {
     int heightInLines = m_viewHeight / LINE_HEIGHT;
-    if (heightInLines > 1) {
-      firstLineIndex = cursor.line - heightInLines / 2;
-      if (firstLineIndex < 0)
-        firstLineIndex = 0;
-    } else {
-      firstLineIndex = cursor.line;
-    }
+    firstLineIndex = cursor.line - heightInLines / 2;
+    if (firstLineIndex < 0)
+      firstLineIndex = 0;
     m_editor.scrollTo (firstLineIndex);
   } else {
     invalidateLines ();
@@ -219,7 +219,15 @@ void View::initLineImage (LineImage& lineImage,
   lineImage.set (surface, width, height, utf8Line, lineIndex);
 }
 
-void View::setDimensions (int64_t width, int64_t height) {
+int View::getHeight (void) const {
+  return m_viewHeight;
+}
+
+int View::getWidth (void) const {
+  return m_viewWidth;
+}
+
+void View::setDimensions (int width, int height) {
   m_viewHeight = height;
   m_viewWidth = width;
   invalidateLines ();
