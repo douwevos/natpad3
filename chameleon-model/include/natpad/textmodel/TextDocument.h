@@ -20,6 +20,7 @@
 #ifndef __NATPAD_TEXTMODEL_TEXT_DOCUMENT_INCLUDED
 #define __NATPAD_TEXTMODEL_TEXT_DOCUMENT_INCLUDED
 
+#include <functional>
 #include <vector>
 #include <natpad/textmodel/DocumentListener.h>
 
@@ -28,8 +29,18 @@ using std::weak_ptr;
 
 class TextDocument {
 private:
+  class Listeners {
+  private:
+    vector<weak_ptr<DocumentListener>> m_listeners;
+
+  public:
+    void add (const shared_ptr<DocumentListener>& listener);
+    void remove (const shared_ptr<DocumentListener>& listener);
+    void forEach (const std::function<void(shared_ptr<DocumentListener>&)>& consumer);
+  };
+
   vector<shared_ptr<const TextModel>> m_versions;
-  vector<weak_ptr<DocumentListener>> m_listeners;
+  Listeners m_listeners;
 
 public:
   /* Creates a text document with one empty line.  */

@@ -29,7 +29,7 @@ TextDocument::TextDocument (const shared_ptr<const TextModel>& textModel) {
 }
 
 void TextDocument::addListener (const shared_ptr<DocumentListener>& listener) {
-  m_listeners.push_back (weak_ptr<DocumentListener> (listener));
+  m_listeners.add (listener);
 }
 
 shared_ptr<const TextModel> TextDocument::getTextModel (void) {
@@ -42,20 +42,9 @@ shared_ptr<const TextModel> TextDocument::getTextModel (void) {
 
 void TextDocument::postTextModel (shared_ptr<const TextModel> textModel) {
   m_versions.push_back (textModel);
-  for (weak_ptr<DocumentListener> listener : m_listeners) {
-    if (shared_ptr<DocumentListener> aliveListener = listener.lock ()) {
-      aliveListener->onNewTextModel (textModel);
-    }
-  }
+  m_listeners.forEach ([=] (shared_ptr<DocumentListener>& listener) { listener->onNewTextModel (textModel); });
 }
 
 void TextDocument::removeListener (const shared_ptr<DocumentListener>& listener) {
-  for (vector<weak_ptr<DocumentListener>>::iterator iter = m_listeners.begin (); iter != m_listeners.end (); ++iter) {
-    if (shared_ptr<DocumentListener> otherListener = (*iter).lock ()) {
-      if (otherListener.get () == listener.get ()) {
-        m_listeners.erase (iter);
-        return;
-      }
-    }
-  }
+  m_listeners.remove (listener);
 }
