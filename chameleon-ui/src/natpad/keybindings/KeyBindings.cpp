@@ -49,15 +49,19 @@ KeyCommand KeyBindings::getUnmodifiedCommand (int key, bool shift) {
   case GDK_KEY_Up:
     return KeyCommand::cursorLineUp;
 
+  case GDK_KEY_End:
   case GDK_KEY_KP_End:
     return KeyCommand::cursorLineEnd;
 
+  case GDK_KEY_Home:
   case GDK_KEY_KP_Home:
     return KeyCommand::cursorLineStart;
 
+  case GDK_KEY_Page_Down:
   case GDK_KEY_KP_Page_Down:
     return KeyCommand::cursorPageDown;
 
+  case GDK_KEY_Page_Up:
   case GDK_KEY_KP_Page_Up:
     return KeyCommand::cursorPageUp;
   }
