@@ -12,6 +12,7 @@
 #include <gtkmm/scrollable.h>
 #include <gtkmm/adjustment.h>
 #include <glibmm.h>
+#include <natpad/keybindings/KeyBindings.h>
 #include <natpad/textmodel/TextDocument.h>
 #include <natpad/view/View.h>
 
@@ -24,8 +25,10 @@ public:
   Editor& operator= (const Editor&) = delete;
   Editor (Editor&&) = delete;
   Editor& operator= (Editor&&) = delete;
+  virtual ~Editor (void);
 
   shared_ptr<TextDocument> getTextDocument (void);
+  void scrollTo (int lineIndex);
 
   void on_property_value_hadjustment ();
   void on_property_value_vadjustment ();
@@ -39,6 +42,8 @@ protected:
 
   bool on_draw (const Cairo::RefPtr<Cairo::Context>& cr) override;
 
+  bool on_key_press_event (GdkEventKey* keyEvent) override;
+
   void on_size_allocate (Gtk::Allocation& allocation) override;
 
   void on_realize () override;
@@ -47,11 +52,24 @@ protected:
 private:
   shared_ptr<View> m_view;
   shared_ptr<TextDocument> m_textDocument;
+  KeyBindings* m_keyBindings;
 
   Glib::RefPtr<Gtk::Adjustment> m_vertical_adjustment;
   sigc::connection m_s_vertical_adjustment;
+  int m_cursorColumn;
 
   void l_set_vadjustment ();
+
+  void moveCursorBack (void);
+  void moveCursorDown (void);
+  void moveCursorForward (void);
+  void moveCursorLineEnd (void);
+  void moveCursorLineStart (void);
+  void moveCursorPageDown (void);
+  void moveCursorPageUp (void);
+  void moveCursorTextEnd (void);
+  void moveCursorTextStart (void);
+  void moveCursorUp (void);
 };
 
 #endif /* NATPAD_EDITOR_H_ */

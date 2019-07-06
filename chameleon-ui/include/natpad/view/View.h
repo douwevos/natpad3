@@ -22,13 +22,29 @@ class View : public DocumentListener {
 public:
   View (Editor& owningEditor, int fontSize);
 
+  Cursor getCursor (void) const;
+
+  void setCursor (const Cursor& cursor);
+
+  /* Returns the height of a single line of text within this View.  */
+  int getLineHeight ();
+
   void setVerticalAdjustment (Glib::RefPtr<Gtk::Adjustment> vertical_adjustment);
 
   void setLayoutHeight (int64_t height);
 
+  int64_t getViewY (void) const;
+
   int64_t set_view_y (int64_t y_pos);
 
-  void setHeight (int64_t height);
+  /* Returns the width of this View.  */
+  int getWidth (void) const;
+
+  /* Returns the height of this View.  */
+  int getHeight (void) const;
+
+  /* Sets the dimensions of this View.  */
+  void setDimensions (int width, int height);
 
   void draw (const Cairo::RefPtr<Cairo::Context>& cr);
 
@@ -37,6 +53,7 @@ public:
 private:
   int64_t m_view_y;
   int64_t m_viewHeight;
+  int64_t m_viewWidth;
   int64_t m_layout_height;
 
   Glib::RefPtr<Gtk::Adjustment> m_vertical_adjustment;

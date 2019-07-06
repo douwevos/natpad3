@@ -9,10 +9,11 @@
 #include <natpad/view/View.h>
 #include <natpad/Editor.h>
 
+#define LINE_HEIGHT     m_fontSize
 #define WINDOW_Y_OFFSET 3
 
 View::View (Editor& owningEditor, int fontSize) :
-    m_editor (owningEditor), m_viewHeight (0), m_fontSize (fontSize) {
+    m_editor (owningEditor), m_fontSize (fontSize), m_viewHeight (0), m_viewWidth (0) {
   m_view_y = 0;
   m_layout_height = 100;
   Cairo::Matrix fontMatrix (m_fontSize, 0, 0, m_fontSize, 0, 0);
@@ -24,6 +25,10 @@ View::View (Editor& owningEditor, int fontSize) :
   Cairo::TextExtents extents;
   m_font->text_extents ("A", extents);
   m_charWidth = extents.x_advance + 0.5;
+}
+
+int64_t View::getViewY (void) const {
+  return m_view_y;
 }
 
 int64_t View::set_view_y (int64_t y_pos) {
@@ -69,20 +74,20 @@ void View::draw (const Cairo::RefPtr<Cairo::Context>& cr) {
   cr->translate (0, -m_view_y); /* @Douwe: Deze regel lijkt nodig voor het scrollen... Waarom is dat? */
 
   cr->set_source_rgb (0.0, 0.0, 0.0);
-  cr->rectangle (0, m_view_y, 1024, m_viewHeight);
+  cr->rectangle (0, m_view_y, m_viewWidth, m_viewHeight);
   cr->fill ();
 
-  if (m_textmodel) {
+  if (m_lineImages.length () > 0) {
     //printf ("View::draw: Drawing %d lines.\n", m_lineImages.length ());
 
-    const double delta = m_fontSize;
-    double y = m_view_y + WINDOW_Y_OFFSET;
+    int64_t firstLineY = m_lineImages[0].lineIndex () * LINE_HEIGHT;
+    double y = firstLineY + WINDOW_Y_OFFSET;
 
     for (int i = 0; i < m_lineImages.length (); ++i) {
       cr->set_source (m_lineImages[i].surface (), 0, y);
       cr->rectangle (0, y, m_lineImages[i].width (), m_lineImages[i].height ());
       cr->fill ();
-      y += delta;
+      y += LINE_HEIGHT;
     }
     drawCursor (cr);
   }
@@ -94,29 +99,54 @@ void View::drawCursor (const Cairo::RefPtr<Cairo::Context>& cr) {
   if (window && lineImageCount > 0) {
     int index = m_cursor.line - m_lineImages[0].lineIndex ();
     if (index >= 0 && index < lineImageCount) {
-      int64_t viewY = m_view_y + WINDOW_Y_OFFSET + m_fontSize * index;
-      int64_t viewX = m_cursor.column * m_charWidth;
+      int64_t firstLineY = m_lineImages[0].lineIndex () * LINE_HEIGHT;
+      int64_t cursorY = firstLineY + WINDOW_Y_OFFSET + LINE_HEIGHT * index;
+      int64_t cursorX = m_cursor.column * m_charWidth;
 
-      Cairo::RefPtr<Cairo::Surface> tempSurf = window->create_similar_surface (Cairo::CONTENT_COLOR_ALPHA, m_charWidth, m_fontSize);
+      Cairo::RefPtr<Cairo::Surface> tempSurf = window->create_similar_surface (Cairo::CONTENT_COLOR_ALPHA, m_charWidth, LINE_HEIGHT);
       Cairo::RefPtr<Cairo::Context> tempCtxt = Cairo::Context::create (tempSurf);
-      tempCtxt->set_source (m_lineImages[index].surface (), -viewX, 0);
-      tempCtxt->rectangle (0, 0, m_charWidth, m_fontSize);
+      tempCtxt->set_source (m_lineImages[index].surface (), -cursorX, 0);
+      tempCtxt->rectangle (0, 0, m_charWidth, LINE_HEIGHT);
       tempCtxt->fill ();
 
       cr->set_source_rgb (1.0, 1.0, 1.0);
-      cr->rectangle (viewX, viewY, m_charWidth, m_fontSize);
+      cr->rectangle (cursorX, cursorY, m_charWidth, LINE_HEIGHT);
       cr->fill ();
       cr->set_source_rgb (0.0, 0.0, 0.0);
-      cr->mask (tempSurf, viewX, viewY);
+      cr->mask (tempSurf, cursorX, cursorY);
       cr->fill ();
     }
   }
 }
 
+Cursor View::getCursor (void) const {
+  return m_cursor;
+}
+
+void View::setCursor (const Cursor& cursor) {
+  m_cursor = cursor;
+
+  int firstLineIndex = m_view_y / LINE_HEIGHT;
+  int lastLineIndex = (m_view_y + m_viewHeight) / LINE_HEIGHT;
+  if (cursor.line < firstLineIndex || cursor.line >= lastLineIndex) {
+    int heightInLines = m_viewHeight / LINE_HEIGHT;
+    firstLineIndex = cursor.line - heightInLines / 2;
+    if (firstLineIndex < 0)
+      firstLineIndex = 0;
+    m_editor.scrollTo (firstLineIndex);
+  } else {
+    invalidateLines ();
+  }
+}
+
+int View::getLineHeight () {
+  return LINE_HEIGHT;
+}
+
 void View::invalidateLines (void) {
-  int firstLineIndex = m_view_y / m_fontSize;
-  int lastLineIndex = (m_view_y + m_viewHeight) / m_fontSize;
-  if ((m_view_y + m_viewHeight) % m_fontSize > 0) {
+  int firstLineIndex = m_view_y / LINE_HEIGHT;
+  int lastLineIndex = (m_view_y + m_viewHeight) / LINE_HEIGHT;
+  if ((m_view_y + m_viewHeight) % LINE_HEIGHT > 0) {
     ++lastLineIndex;
   }
 
@@ -136,7 +166,7 @@ void View::invalidateLines (void) {
   for (int i = 0; i < lineCount; ++i) {
     int lineIndex = i + firstLineIndex;
     initLineImage (lineImages[i], m_textmodel->lineAt (lineIndex), textColour, lineIndex);
-    m_editor.queue_draw_area (0, lineIndex * m_fontSize + WINDOW_Y_OFFSET, lineImages[i].width (), lineImages[i].height ());
+    m_editor.queue_draw_area (0, lineIndex * LINE_HEIGHT + WINDOW_Y_OFFSET - m_view_y, m_viewWidth, lineImages[i].height ());
   }
   m_lineImages = std::move (lineImages);
 }
@@ -156,6 +186,7 @@ void View::initLineImage (LineImage& lineImage,
     int lineIndex) {
   StringConvert convert;
   std::string utf8Line = convert.to_bytes (*line);
+  utf8Line += ' '; /* To help draw the cursor at the end of the line.  */
 
   int oldImageIndex = findIndexOfLineImage (utf8Line);
   if (oldImageIndex > -1) {
@@ -169,7 +200,7 @@ void View::initLineImage (LineImage& lineImage,
   Cairo::TextExtents extent;
   m_font->text_extents (utf8Line, extent);
   const double width = extent.x_advance;
-  const double height = m_fontSize;
+  const double height = LINE_HEIGHT;
 
   Glib::RefPtr<Gdk::Window> window = m_editor.get_window ();
   Cairo::RefPtr<Cairo::Surface> surface;
@@ -188,8 +219,17 @@ void View::initLineImage (LineImage& lineImage,
   lineImage.set (surface, width, height, utf8Line, lineIndex);
 }
 
-void View::setHeight (int64_t height) {
+int View::getHeight (void) const {
+  return m_viewHeight;
+}
+
+int View::getWidth (void) const {
+  return m_viewWidth;
+}
+
+void View::setDimensions (int width, int height) {
   m_viewHeight = height;
+  m_viewWidth = width;
   invalidateLines ();
 }
 
