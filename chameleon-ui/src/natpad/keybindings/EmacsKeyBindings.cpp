@@ -31,6 +31,10 @@ KeyCommand EmacsKeyBindings::getAltCommand (int key, bool shift) {
   case GDK_KEY_less:
     return KeyCommand::cursorTextStart;
 
+  case GDK_KEY_g:
+    m_prefixKey = PrefixKey::meta_g;
+    return KeyCommand::none;
+
   case GDK_KEY_v:
     return KeyCommand::cursorPageUp;
   }
@@ -42,6 +46,25 @@ KeyCommand EmacsKeyBindings::getCtrlAltCommand (int key, bool shift) {
 }
 
 KeyCommand EmacsKeyBindings::getCtrlCommand (int key, bool shift) {
+  switch (m_prefixKey) {
+  case PrefixKey::ctrl_x:
+    m_prefixKey = PrefixKey::none;
+    return KeyCommand::none;
+
+  case PrefixKey::ctrl_x_8:
+    m_prefixKey = PrefixKey::none;
+    return KeyCommand::none;
+
+  case PrefixKey::esc:
+    m_prefixKey = PrefixKey::none;
+    return getCtrlAltCommand (key, shift);
+
+  case PrefixKey::meta_g:
+    m_prefixKey = PrefixKey::none;
+    return KeyCommand::none;
+  }
+
+
   switch (key) {
   case GDK_KEY_a:
     return KeyCommand::cursorLineStart;
@@ -64,9 +87,15 @@ KeyCommand EmacsKeyBindings::getCtrlCommand (int key, bool shift) {
   case GDK_KEY_v:
     return KeyCommand::cursorPageDown;
 
+  case GDK_KEY_x:
+    m_prefixKey = PrefixKey::ctrl_x;
+    return KeyCommand::none;
+
+  case GDK_KEY_End:
   case GDK_KEY_KP_End:
     return KeyCommand::cursorTextEnd;
 
+  case GDK_KEY_Home:
   case GDK_KEY_KP_Home:
     return KeyCommand::cursorTextStart;
   }
@@ -74,27 +103,44 @@ KeyCommand EmacsKeyBindings::getCtrlCommand (int key, bool shift) {
 }
 
 KeyCommand EmacsKeyBindings::getUnmodifiedCommand (int key, bool shift) {
-  if (m_prefixKey == PrefixKey::none) {
-    if (key == GDK_KEY_Escape) {
-      m_prefixKey = PrefixKey::esc;
-      return KeyCommand::none;
-    }
-    return KeyBindings::getUnmodifiedCommand (key, shift);
-  }
-
   switch (m_prefixKey) {
   case PrefixKey::ctrl_x:
-    break;
+    return getUnmodifiedCommand_Cx (key, shift);
 
   case PrefixKey::ctrl_x_8:
-    break;
+    m_prefixKey = PrefixKey::none;
+    return KeyCommand::none;
 
   case PrefixKey::esc:
     m_prefixKey = PrefixKey::none;
     return getAltCommand (key, shift);
 
   case PrefixKey::meta_g:
-    break;
+    m_prefixKey = PrefixKey::none;
+    return KeyCommand::none;
+  }
+
+
+  if (key == GDK_KEY_Escape) {
+    m_prefixKey = PrefixKey::esc;
+    return KeyCommand::none;
+  }
+  return KeyBindings::getUnmodifiedCommand (key, shift);
+}
+
+KeyCommand EmacsKeyBindings::getUnmodifiedCommand_Cx (int key, bool shift) {
+  m_prefixKey = PrefixKey::none;
+
+  switch (key) {
+  case GDK_KEY_8:
+    m_prefixKey = PrefixKey::ctrl_x_8;
+    return KeyCommand::none;
+
+  case GDK_KEY_bracketleft:
+    return KeyCommand::cursorTextStart;
+
+  case GDK_KEY_bracketright:
+    return KeyCommand::cursorTextEnd;
   }
   return KeyCommand::none;
 }

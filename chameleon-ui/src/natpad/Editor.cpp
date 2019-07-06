@@ -149,6 +149,7 @@ void Editor::on_realize () {
   m_view->setLayoutHeight (3000);
   m_view->setDimensions (window->get_width (), window->get_height ());
   m_textDocument->postTextModel (createTextModel ());
+  m_view->setCursor (Cursor ());
 
 // for later user
 //
@@ -306,7 +307,6 @@ void Editor::moveCursorPageDown (void) {
   int firstLineIndex = viewY / lineHeight;
   int linesOnPageMinusTwo = viewHeight / lineHeight - 2;
   if (linesOnPageMinusTwo < 1) {
-    /* TODO: We should prevent this situation from occurring.  */
     linesOnPageMinusTwo = 1;
   }
 
@@ -332,7 +332,6 @@ void Editor::moveCursorPageUp (void) {
   const int oldFirstLineIndex = viewY / lineHeight;
   int linesOnPageMinusTwo = viewHeight / lineHeight - 2;
   if (linesOnPageMinusTwo < 1) {
-    /* TODO: We should prevent this situation from occurring.  */
     if (linesOnPageMinusTwo < 0) {
       moveCursorUp ();
       return;

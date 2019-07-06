@@ -17,34 +17,26 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef __NATPAD_KEYBINDINGS_EMACS_KEY_BINDINGS_INCLUDED
-#define __NATPAD_KEYBINDINGS_EMACS_KEY_BINDINGS_INCLUDED
+#include <gdk/gdkkeysyms.h>
+#include <natpad/keybindings/CuaKeyBindings.h>
 
-#include <natpad/keybindings/KeyBindings.h>
+KeyCommand CuaKeyBindings::getAltCommand (int key, bool shift) {
+  return KeyCommand::none;
+}
 
-class EmacsKeyBindings : public KeyBindings {
-private:
-  enum class PrefixKey {
-    none,
-    ctrl_x,
-    ctrl_x_8,
-    esc,
-    meta_g
-  };
+KeyCommand CuaKeyBindings::getCtrlAltCommand (int key, bool shift) {
+  return KeyCommand::none;
+}
 
-  PrefixKey m_prefixKey;
+KeyCommand CuaKeyBindings::getCtrlCommand (int key, bool shift) {
+  switch (key) {
+  case GDK_KEY_End:
+  case GDK_KEY_KP_End:
+    return KeyCommand::cursorTextEnd;
 
-public:
-  EmacsKeyBindings (void);
-
-protected:
-  KeyCommand getAltCommand (int key, bool shift) override;
-  KeyCommand getCtrlAltCommand (int key, bool shift) override;
-  KeyCommand getCtrlCommand (int key, bool shift) override;
-  KeyCommand getUnmodifiedCommand (int key, bool shift) override;
-
-private:
-  KeyCommand getUnmodifiedCommand_Cx (int key, bool shift);
-};
-
-#endif
+  case GDK_KEY_Home:
+  case GDK_KEY_KP_Home:
+    return KeyCommand::cursorTextStart;
+  }
+  return KeyCommand::none;
+}

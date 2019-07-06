@@ -38,15 +38,19 @@ KeyCommand KeyBindings::getCommand (Event event) {
 KeyCommand KeyBindings::getUnmodifiedCommand (int key, bool shift) {
   switch (key) {
   case GDK_KEY_Down:
+  case GDK_KEY_KP_Down:
     return KeyCommand::cursorLineDown;
 
   case GDK_KEY_Left:
+  case GDK_KEY_KP_Left:
     return KeyCommand::cursorBack;
 
   case GDK_KEY_Right:
+  case GDK_KEY_KP_Right:
     return KeyCommand::cursorForward;
 
   case GDK_KEY_Up:
+  case GDK_KEY_KP_Up:
     return KeyCommand::cursorLineUp;
 
   case GDK_KEY_End:

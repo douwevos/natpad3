@@ -17,34 +17,16 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef __NATPAD_KEYBINDINGS_EMACS_KEY_BINDINGS_INCLUDED
-#define __NATPAD_KEYBINDINGS_EMACS_KEY_BINDINGS_INCLUDED
+#ifndef __NATPAD_KEYBINDINGS_CUA_KEY_BINDINGS_INCLUDED
+#define __NATPAD_KEYBINDINGS_CUA_KEY_BINDINGS_INCLUDED
 
 #include <natpad/keybindings/KeyBindings.h>
 
-class EmacsKeyBindings : public KeyBindings {
-private:
-  enum class PrefixKey {
-    none,
-    ctrl_x,
-    ctrl_x_8,
-    esc,
-    meta_g
-  };
-
-  PrefixKey m_prefixKey;
-
-public:
-  EmacsKeyBindings (void);
-
+class CuaKeyBindings : public KeyBindings {
 protected:
   KeyCommand getAltCommand (int key, bool shift) override;
   KeyCommand getCtrlAltCommand (int key, bool shift) override;
   KeyCommand getCtrlCommand (int key, bool shift) override;
-  KeyCommand getUnmodifiedCommand (int key, bool shift) override;
-
-private:
-  KeyCommand getUnmodifiedCommand_Cx (int key, bool shift);
 };
 
 #endif
