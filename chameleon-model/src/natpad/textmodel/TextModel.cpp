@@ -124,6 +124,18 @@ int TextModel::lineCount (void) const {
   return m_lineCount;
 }
 
+TextModel::LineIterator TextModel::lineIterator (void) const {
+  return TextModel::LineIterator (this, 0, 0);
+}
+
+TextModel::LineIterator TextModel::lineIterator (int line) const {
+  if (line < 0 || line >= m_lineCount)
+    throw std::out_of_range ("Specified line number out of range.");
+
+  TextModel::PageInfo pageInfo = pageInfoForLine (line);
+  return TextModel::LineIterator (this, pageInfo.index, line - pageInfo.firstLine);
+}
+
 /* Private method: no bounds check. */
 const shared_ptr<const Page>& TextModel::pageAt (int index) const {
   if (index == m_editPageIndex)

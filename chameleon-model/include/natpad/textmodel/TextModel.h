@@ -33,6 +33,29 @@ private:
   int m_lineCount;
 
 public:
+  class LineIterator {
+  private:
+    const TextModel* m_textModel;
+    shared_ptr<const Page> m_page;
+    int m_pageIndex;
+    int m_lineIndex;
+
+    LineIterator (const TextModel* textModel, int pageIndex, int lineIndex);
+
+  public:
+    LineIterator (const LineIterator& other);
+    LineIterator& operator= (const LineIterator& other);
+
+    LineIterator (LineIterator&& other);
+    LineIterator& operator= (LineIterator&& other);
+
+    LineIterator& operator++ (void);
+    LineIterator operator++ (int dummy);
+    shared_ptr<const String> operator* (void) const;
+
+    friend class TextModel;
+  };
+
   TextModel (void);
   TextModel (Reader& stream);
 
@@ -41,6 +64,8 @@ public:
   shared_ptr<const TextModel> insert (const Cursor& cursor, const std::string& utf8Text) const;
   shared_ptr<const String> lineAt (int line) const;
   int lineCount (void) const;
+  LineIterator lineIterator (void) const;
+  LineIterator lineIterator (int line) const;
 
 private:
   class Builder {
