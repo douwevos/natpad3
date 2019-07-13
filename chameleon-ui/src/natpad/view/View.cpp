@@ -163,10 +163,12 @@ void View::invalidateLines (void) {
   Colour textColour (1.0, 1.0, 1.0);
   const int lineCount = lastLineIndex - firstLineIndex;
   UniqueArray<LineImage> lineImages (lineCount);
+  TextModel::LineIterator lineIter = m_textmodel->lineIterator (firstLineIndex);
   for (int i = 0; i < lineCount; ++i) {
     int lineIndex = i + firstLineIndex;
-    initLineImage (lineImages[i], m_textmodel->lineAt (lineIndex), textColour, lineIndex);
+    initLineImage (lineImages[i], *lineIter, textColour, lineIndex);
     m_editor.queue_draw_area (0, lineIndex * LINE_HEIGHT + WINDOW_Y_OFFSET - m_view_y, m_viewWidth, lineImages[i].height ());
+    ++lineIter;
   }
   m_lineImages = std::move (lineImages);
 }
@@ -181,11 +183,11 @@ int View::findIndexOfLineImage (const std::string& text) {
 }
 
 void View::initLineImage (LineImage& lineImage,
-    shared_ptr<const String> line,
+    shared_ptr<Line> line,
     const Colour& textColour,
     int lineIndex) {
   StringConvert convert;
-  std::string utf8Line = convert.to_bytes (*line);
+  std::string utf8Line = convert.to_bytes (*line->text ());
   utf8Line += ' '; /* To help draw the cursor at the end of the line.  */
 
   int oldImageIndex = findIndexOfLineImage (utf8Line);

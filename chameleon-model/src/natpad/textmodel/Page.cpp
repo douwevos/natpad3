@@ -32,7 +32,7 @@ shared_ptr<const Page> Page::insert (Cursor& cursor, const String& text) const {
   shared_ptr<String> line;
   int cursorDistanceToLineEnd;
   if (cursor.line == m_editLineIndex) {
-    line.reset (new String (*m_editLine));
+    line.reset (new String (*m_editLine->text ()));
     cursorDistanceToLineEnd = line->length () - cursor.column;
     line->insert (cursor.column, text);
   } else {
@@ -40,7 +40,7 @@ shared_ptr<const Page> Page::insert (Cursor& cursor, const String& text) const {
       line.reset (new String (text));
       cursorDistanceToLineEnd = 0;
     } else {
-      line.reset (new String (*m_lines.get ()[cursor.line]));
+      line.reset (new String (*m_lines.get ()[cursor.line]->text ()));
       cursorDistanceToLineEnd = line->length () - cursor.column;
       line->insert (cursor.column, text);
     }
@@ -57,7 +57,7 @@ shared_ptr<const Page> Page::insert (Cursor& cursor, const String& text) const {
   return resultPage;
 }
 
-shared_ptr<const String> Page::lineAt (int line) const {
+shared_ptr<Line> Page::lineAt (int line) const {
   if (line < 0 || line >= lineCount ())
     throw std::out_of_range ("Specified line number out of range.");
 

@@ -69,7 +69,7 @@ void TextDocumentTest::testConstructor_void (void) {
   TextDocument doc;
   shared_ptr<const TextModel> model = doc.getTextModel ();
   assertEquals (1, model->lineCount ());
-  assertEquals ("", *model->lineAt (0));
+  assertEquals ("", *model->lineAt (0)->text ());
 }
 
 void TextDocumentTest::testConstructor_TextModel (void) {
@@ -78,8 +78,8 @@ void TextDocumentTest::testConstructor_TextModel (void) {
   TextDocument doc (createTextModel ());
   shared_ptr<const TextModel> model = doc.getTextModel ();
   assertEquals (2, model->lineCount ());
-  assertEquals ("eerste regel", *model->lineAt (0));
-  assertEquals ("tweede regel", *model->lineAt (1));
+  assertEquals ("eerste regel", *model->lineAt (0)->text ());
+  assertEquals ("tweede regel", *model->lineAt (1)->text ());
 }
 
 void TextDocumentTest::testAddListenerAndPostTextModel (void) {

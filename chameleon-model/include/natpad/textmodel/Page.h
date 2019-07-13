@@ -20,16 +20,15 @@
 #ifndef __NATPAD_TEXTMODEL_PAGE_INCLUDED
 #define __NATPAD_TEXTMODEL_PAGE_INCLUDED
 
-#include <memory>
 #include <natpad/textmodel/Cursor.h>
-#include <natpad/util/string.h>
+#include <natpad/textmodel/Line.h>
 
 using std::shared_ptr;
 
 class Page {
 private:
-  shared_ptr<shared_ptr<const String>> m_lines;
-  shared_ptr<const String> m_editLine;
+  shared_ptr<shared_ptr<Line>> m_lines;
+  shared_ptr<Line> m_editLine;
   int m_editLineIndex;
   int m_lineCount;
 
@@ -43,14 +42,14 @@ public:
      where it ends up after insertion.  The new page with the inserted text is
      returned.  */
   shared_ptr<const Page> insert (Cursor& cursor, const String& text) const;
-  shared_ptr<const String> lineAt (int line) const;
+  shared_ptr<Line> lineAt (int line) const;
   int lineCount (void) const;
 
   class Builder {
   private:
-    shared_ptr<shared_ptr<const String>> m_lines;
+    shared_ptr<shared_ptr<Line>> m_lines;
     shared_ptr<const String> m_editLine;
-    shared_ptr<const String> m_setLine;
+    shared_ptr<Line> m_setLine;
     int m_editLineIndex;
     int m_lineCount;
     int m_setIndex;
@@ -65,9 +64,9 @@ public:
 
     shared_ptr<const Page> build (void);
     Builder& editLine (int index, const shared_ptr<const String>& line);
-    Builder& lines (const shared_ptr<shared_ptr<const String>>& lines, int lineCount);
+    Builder& lines (const shared_ptr<shared_ptr<Line>>& lines, int lineCount);
     Builder& reset (void);
-    Builder& setLine (int index, const shared_ptr<const String>& line);
+    Builder& setLine (int index, const shared_ptr<Line>& line);
 
   private:
     void buildSingleOrNoEditLine (Page* page);

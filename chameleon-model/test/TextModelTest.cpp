@@ -65,12 +65,12 @@ static String createLines (int count) {
 }
 
 static shared_ptr<const Page> createPage (int lineCount, int index = 0) {
-  shared_ptr<const String>* lines = new shared_ptr<const String>[lineCount];
+  shared_ptr<Line>* lines = new shared_ptr<Line>[lineCount];
   for (int i = 0; i < lineCount; ++i) {
-    lines[i] = shared_ptr<const String> (new String (createLine (index++)));
+    lines[i].reset (new Line (shared_ptr<const String> (new String (createLine (index++)))));
   }
   Page::Builder builder;
-  return builder.lines (shared_ptr<shared_ptr<const String>> (lines, [] (shared_ptr<const String>* array) { delete[] array; }), lineCount)
+  return builder.lines (shared_ptr<shared_ptr<Line>> (lines, [] (shared_ptr<Line>* array) { delete[] array; }), lineCount)
                 .build ();
 }
 
@@ -110,7 +110,7 @@ void TextModelTest::testConstructor_Reader_noLines (void) {
   assertEquals (1, model.lineCount ());
   assertEquals (1, model.m_pageCount);
   assertTrue (model.m_editPageIndex < 0);
-  assertEquals ("", *model.m_pages.get ()[0]->lineAt (0));
+  assertEquals ("", *model.m_pages.get ()[0]->lineAt (0)->text ());
 }
 
 void TextModelTest::testConstructor_Reader_lessThanPreferredPageSizeLines (void) {
@@ -130,7 +130,7 @@ void TextModelTest::testConstructor_Reader_lessThanPreferredPageSizeLines (void)
 
   shared_ptr<const Page> page = model.m_pages.get ()[0];
   for (int i = 0; i < lineCount; ++i) {
-    assertEquals (createLine (i), *page->lineAt (i));
+    assertEquals (createLine (i), *page->lineAt (i)->text ());
   }
 }
 
@@ -150,7 +150,7 @@ void TextModelTest::testConstructor_Reader_exactlyPreferredPageSizeLines (void) 
 
   shared_ptr<const Page> page = model.m_pages.get ()[0];
   for (int i = 0; i < lineCount; ++i) {
-    assertEquals (createLine (i), *page->lineAt (i));
+    assertEquals (createLine (i), *page->lineAt (i)->text ());
   }
 }
 
@@ -176,7 +176,7 @@ void TextModelTest::testConstructor_Reader_moreThanPreferredPageSizeLines (void)
     else
       assertEquals (1, lineCount);
     for (int j = 0; j < lineCount; ++j) {
-      assertEquals (createLine (i * Page::preferredSize + j), *page->lineAt (j));
+      assertEquals (createLine (i * Page::preferredSize + j), *page->lineAt (j)->text ());
     }
   }
 }
@@ -274,7 +274,7 @@ void TextModelTest::testLineAt (void) {
   model.m_editPageIndex = 1;
 
   for (int i = 0; i < model.m_lineCount; ++i) {
-    shared_ptr<const String> line = model.lineAt (i);
+    shared_ptr<const String> line = model.lineAt (i)->text ();
     int n = std::stoi (convert.to_bytes (*line));
     assertEquals (i + 1, n);
   }
@@ -298,7 +298,7 @@ void TextModelTest::testInsert_emptyModel (void) {
   shared_ptr<const TextModel> textModel = shared_ptr<const TextModel> (new TextModel);
   textModel = textModel->insert (Cursor (), "hoi");
   assertEquals (1, textModel->lineCount ());
-  assertEquals ("hoi", *textModel->lineAt (0));
+  assertEquals ("hoi", *textModel->lineAt (0)->text ());
   assertEquals (0, textModel->cursor ().line);
   assertEquals (3, textModel->cursor ().column);
 }
@@ -358,6 +358,6 @@ void TextModelTest::testInsert_modifyLineOrAddAtEnd (void) {
     } else {
       str = createLine (i);
     }
-    assertEquals (str, *textModel->lineAt (i));
+    assertEquals (str, *textModel->lineAt (i)->text ());
   }
 }

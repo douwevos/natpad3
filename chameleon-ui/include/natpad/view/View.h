@@ -69,7 +69,7 @@ private:
   void drawCursor (const Cairo::RefPtr<Cairo::Context>& cr);
   int findIndexOfLineImage (const std::string& text);
   void initLineImage (LineImage& lineImage,
-      shared_ptr<const String> line,
+      shared_ptr<Line> line,
       const Colour& textColour,
       int lineIndex);
   void invalidateLines (void);

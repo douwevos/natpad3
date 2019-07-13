@@ -41,22 +41,22 @@ TextModel::TextModel (Reader& stream) : TextModel () {
     int i;
     Page::Builder pageBuilder;
     for (i = 0; i < m_pageCount - 1; ++i) {
-      shared_ptr<const String>* lineArray = new shared_ptr<const String>[Page::preferredSize];
+      shared_ptr<Line>* lineArray = new shared_ptr<Line>[Page::preferredSize];
       for (int j = 0; j < Page::preferredSize; ++j) {
-        lineArray[j] = lines[Page::preferredSize * i + j];
+        lineArray[j].reset (new Line (lines[Page::preferredSize * i + j]));
       }
       pages[i] =
-          pageBuilder.lines (shared_ptr<shared_ptr<const String>> (lineArray, [] (shared_ptr<const String>* array) { delete[] array; }), Page::preferredSize)
+          pageBuilder.lines (shared_ptr<shared_ptr<Line>> (lineArray, [] (shared_ptr<Line>* array) { delete[] array; }), Page::preferredSize)
                      .build ();
       pageBuilder.reset ();
     }
 
-    shared_ptr<const String>* lineArray = new shared_ptr<const String>[remainder];
+    shared_ptr<Line>* lineArray = new shared_ptr<Line>[remainder];
     for (int j = 0; j < remainder; ++j) {
-      lineArray[j] = lines[Page::preferredSize * i + j];
+      lineArray[j].reset (new Line (lines[Page::preferredSize * i + j]));
     }
     pages[i] =
-        pageBuilder.lines (shared_ptr<shared_ptr<const String>> (lineArray, [] (shared_ptr<const String>* array) { delete[] array; }), remainder)
+        pageBuilder.lines (shared_ptr<shared_ptr<Line>> (lineArray, [] (shared_ptr<Line>* array) { delete[] array; }), remainder)
                    .build ();
 
     m_pages.reset (pages, [](shared_ptr<const Page>* p) { delete[] p; });
@@ -112,7 +112,7 @@ shared_ptr<const TextModel> TextModel::insert (const Cursor& cursor, const std::
   return insert (cursor, text);
 }
 
-shared_ptr<const String> TextModel::lineAt (int line) const {
+shared_ptr<Line> TextModel::lineAt (int line) const {
   if (line < 0 || line >= m_lineCount)
     throw std::out_of_range ("Specified line number out of range.");
 

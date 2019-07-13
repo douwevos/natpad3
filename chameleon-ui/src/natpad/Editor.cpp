@@ -242,7 +242,7 @@ void Editor::moveCursorBack (void) {
     if (cursor.line == 0)
       return;
     --cursor.line;
-    shared_ptr<const String> line = m_textDocument->getTextModel ()->lineAt (cursor.line);
+    shared_ptr<Line> line = m_textDocument->getTextModel ()->lineAt (cursor.line);
     cursor.column = line->length ();
   } else {
     --cursor.column;
@@ -263,7 +263,7 @@ void Editor::moveCursorDown (void) {
     m_cursorColumn = cursor.column;
   }
   ++cursor.line;
-  shared_ptr<const String> line = textModel->lineAt (cursor.line);
+  shared_ptr<Line> line = textModel->lineAt (cursor.line);
   if (cursor.column > line->length()) {
     cursor.column = line->length ();
   }
@@ -273,7 +273,7 @@ void Editor::moveCursorDown (void) {
 void Editor::moveCursorForward (void) {
   Cursor cursor = m_view->getCursor ();
   shared_ptr<const TextModel> textModel = m_textDocument->getTextModel ();
-  shared_ptr<const String> line = textModel->lineAt (cursor.line);
+  shared_ptr<Line> line = textModel->lineAt (cursor.line);
   if (cursor.column == line->length ()) {
     if (cursor.line == textModel->lineCount () - 1) {
       return;
@@ -288,7 +288,7 @@ void Editor::moveCursorForward (void) {
 
 void Editor::moveCursorLineEnd (void) {
   Cursor cursor = m_view->getCursor ();
-  shared_ptr<const String> line = m_textDocument->getTextModel ()->lineAt (cursor.line);
+  shared_ptr<Line> line = m_textDocument->getTextModel ()->lineAt (cursor.line);
   cursor.column = line->length ();
   m_view->setCursor (cursor);
 }
@@ -362,7 +362,7 @@ void Editor::moveCursorPageUp (void) {
 void Editor::moveCursorTextEnd (void) {
   shared_ptr<const TextModel> textModel = m_textDocument->getTextModel ();
   int lineIndex = textModel->lineCount () - 1;
-  shared_ptr<const String> line = textModel->lineAt (lineIndex);
+  shared_ptr<Line> line = textModel->lineAt (lineIndex);
   m_view->setCursor (Cursor (lineIndex, line->length ()));
 }
 
@@ -381,7 +381,7 @@ void Editor::moveCursorUp (void) {
     m_cursorColumn = cursor.column;
   }
   --cursor.line;
-  shared_ptr<const String> line = m_textDocument->getTextModel ()->lineAt (cursor.line);
+  shared_ptr<Line> line = m_textDocument->getTextModel ()->lineAt (cursor.line);
   if (cursor.column > line->length()) {
     cursor.column = line->length ();
   }

@@ -51,7 +51,7 @@ public:
 
     LineIterator& operator++ (void);
     LineIterator operator++ (int dummy);
-    shared_ptr<const String> operator* (void) const;
+    shared_ptr<Line> operator* (void) const;
 
     friend class TextModel;
   };
@@ -62,7 +62,7 @@ public:
   Cursor cursor (void) const;
   shared_ptr<const TextModel> insert (const Cursor& cursor, const String& text) const;
   shared_ptr<const TextModel> insert (const Cursor& cursor, const std::string& utf8Text) const;
-  shared_ptr<const String> lineAt (int line) const;
+  shared_ptr<Line> lineAt (int line) const;
   int lineCount (void) const;
   LineIterator lineIterator (void) const;
   LineIterator lineIterator (int line) const;

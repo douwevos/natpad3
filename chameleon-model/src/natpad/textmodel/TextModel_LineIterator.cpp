@@ -27,6 +27,12 @@ TextModel::LineIterator::LineIterator (const TextModel* textModel, int pageIndex
   int pageCount = textModel->pageCount ();
   if (pageIndex < pageCount) {
     m_page = textModel->pageAt (pageIndex);
+
+#ifdef DEBUG_MODE
+    if (m_page->lineCount () == 0) {
+      throw std::runtime_error ("TextModel::LineIterator: page has no lines.");
+    }
+#endif
   }
 }
 
@@ -100,7 +106,7 @@ TextModel::LineIterator TextModel::LineIterator::operator++ (int dummy) {
   return result;
 }
 
-shared_ptr<const String> TextModel::LineIterator::operator* (void) const {
+shared_ptr<Line> TextModel::LineIterator::operator* (void) const {
   if (!m_page) {
     throw std::out_of_range ("TextModel::LineIterator: no more lines available.");
   }
