@@ -20,11 +20,12 @@
 #ifndef __NATPAD_TEXTMODEL_TEXT_MODEL_INCLUDED
 #define __NATPAD_TEXTMODEL_TEXT_MODEL_INCLUDED
 
-#include <natpad/io/Reader.h>
 #include <natpad/textmodel/Page.h>
 
+using std::unique_ptr;
+
 class TextModel {
-private:
+protected:
   shared_ptr<shared_ptr<const Page>> m_pages;
   shared_ptr<const Page> m_editPage;
   Cursor m_cursor;
@@ -57,17 +58,17 @@ public:
   };
 
   TextModel (void);
-  TextModel (Reader& stream);
+  virtual ~TextModel (void);
 
   Cursor cursor (void) const;
-  shared_ptr<const TextModel> insert (const Cursor& cursor, const String& text) const;
+  virtual shared_ptr<const TextModel> insert (const Cursor& cursor, const String& text) const = 0;
   shared_ptr<const TextModel> insert (const Cursor& cursor, const std::string& utf8Text) const;
   shared_ptr<Line> lineAt (int line) const;
   int lineCount (void) const;
   LineIterator lineIterator (void) const;
   LineIterator lineIterator (int line) const;
 
-private:
+protected:
   class Builder {
   private:
     shared_ptr<shared_ptr<const Page>> m_pages;
@@ -84,14 +85,21 @@ private:
     Builder (void);
 
     Builder& addPage (int index, const shared_ptr<const Page>& page);
-    shared_ptr<const TextModel> build (void);
+    virtual shared_ptr<const TextModel> build (void) = 0;
     Builder& cursor (const Cursor& cursor);
     Builder& editPage (int index, shared_ptr<const Page>& page);
     Builder& lineCount (int lineCount);
     Builder& pages (const shared_ptr<shared_ptr<const Page>>& pages, int pageCount);
     Builder& setPage (int index, const shared_ptr<const Page>& page);
+
+  protected:
+    shared_ptr<const TextModel> build (TextModel* textModel);
   };
 
+  virtual unique_ptr<const Page> createEmptyPage (void) const = 0;
+  shared_ptr<const TextModel> insert (Builder& builder, const Cursor& cursor, const String& text) const;
+
+private:
   class PageInfo {
   public:
     const int index;

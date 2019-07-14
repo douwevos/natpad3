@@ -31,13 +31,14 @@ TextModel::Builder& TextModel::Builder::addPage (int index, const shared_ptr<con
   return *this;
 }
 
-shared_ptr<const TextModel> TextModel::Builder::build (void) {
-  if (m_setIndex < NO_INDEX || m_setIndex > m_pageCount)
+shared_ptr<const TextModel> TextModel::Builder::build (TextModel* textModel) {
+  if (m_setIndex < NO_INDEX || m_setIndex > m_pageCount) {
+    delete textModel;
     throw std::out_of_range ("TextModel::Builder::build: Cannot set or add a page at the specified index.");
+  }
   if (m_setIndex == m_pageCount)
     m_addPage = true;
 
-  TextModel* textModel = new TextModel ();
   textModel->m_pageCount = m_pageCount + m_addPage;
   if (m_setIndex != NO_INDEX) {
     shared_ptr<const Page>* newPageArray = new shared_ptr<const Page>[textModel->m_pageCount];

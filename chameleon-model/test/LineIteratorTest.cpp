@@ -19,7 +19,7 @@
 
 #include <stdexcept>
 #include "LineIteratorTest.h"
-#include <natpad/textmodel/TextModel.h>
+#include <natpad/textmodel/BasicTextModel.h>
 
 using Test = void (LineIteratorTest::*) (void);
 
@@ -66,7 +66,7 @@ void LineIteratorTest::testDifferentStartingPoint (void) {
 
   StringConvert convert;
   std::string lines = createLines (4073);
-  TextModel emptyModel;
+  BasicTextModel emptyModel;
   shared_ptr<const TextModel> model = emptyModel.insert (Cursor (), lines);
 
   TextModel::LineIterator iter = model->lineIterator (3000);
@@ -89,7 +89,7 @@ void LineIteratorTest::testIterateOverAllLines (void) {
 
   StringConvert convert;
   std::string lines = createLines (4073);
-  TextModel emptyModel;
+  BasicTextModel emptyModel;
   shared_ptr<const TextModel> model = emptyModel.insert (Cursor (), lines);
 
   TextModel::LineIterator iter = model->lineIterator ();

@@ -17,10 +17,13 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#include <natpad/textmodel/BasicTextModel.h>
 #include <natpad/textmodel/TextDocument.h>
 
 TextDocument::TextDocument (void) {
-  TextModel emptyModel;
+  /* TODO: Do we want to keep this constructor?
+     And if so, do we want to provide a TextModel in this way?  */
+  BasicTextModel emptyModel;
   m_versions.push_back (emptyModel.insert (Cursor (), ""));
 }
 

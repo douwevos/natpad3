@@ -19,59 +19,23 @@
 
 #include <stdexcept>
 #include <natpad/textmodel/TextModel.h>
-#include <natpad/util/StringUtils.h>
 
 #define NO_INDEX -1
 
 TextModel::TextModel (void) : m_pageCount (0), m_editPageIndex (NO_INDEX), m_lineCount (0) {
 }
 
-TextModel::TextModel (Reader& stream) : TextModel () {
-  vector<shared_ptr<String>> lines = StringUtils::getLines (stream);
-  if (!lines.empty ()) {
-    m_lineCount = lines.size ();
-    m_pageCount = m_lineCount / Page::preferredSize;
-    int remainder = m_lineCount % Page::preferredSize;
-    if (remainder != 0)
-      ++m_pageCount;
-    else
-      remainder = Page::preferredSize;
-    shared_ptr<const Page>* pages = new shared_ptr<const Page>[m_pageCount];
-
-    int i;
-    Page::Builder pageBuilder;
-    for (i = 0; i < m_pageCount - 1; ++i) {
-      shared_ptr<Line>* lineArray = new shared_ptr<Line>[Page::preferredSize];
-      for (int j = 0; j < Page::preferredSize; ++j) {
-        lineArray[j].reset (new Line (lines[Page::preferredSize * i + j]));
-      }
-      pages[i] =
-          pageBuilder.lines (shared_ptr<shared_ptr<Line>> (lineArray, [] (shared_ptr<Line>* array) { delete[] array; }), Page::preferredSize)
-                     .build ();
-      pageBuilder.reset ();
-    }
-
-    shared_ptr<Line>* lineArray = new shared_ptr<Line>[remainder];
-    for (int j = 0; j < remainder; ++j) {
-      lineArray[j].reset (new Line (lines[Page::preferredSize * i + j]));
-    }
-    pages[i] =
-        pageBuilder.lines (shared_ptr<shared_ptr<Line>> (lineArray, [] (shared_ptr<Line>* array) { delete[] array; }), remainder)
-                   .build ();
-
-    m_pages.reset (pages, [](shared_ptr<const Page>* p) { delete[] p; });
-  }
+TextModel::~TextModel (void) {
 }
 
 Cursor TextModel::cursor (void) const {
   return m_cursor;
 }
 
-shared_ptr<const TextModel> TextModel::insert (const Cursor& cursor, const String& text) const {
+shared_ptr<const TextModel> TextModel::insert (TextModel::Builder& builder, const Cursor& cursor, const String& text) const {
   if (cursor.line < 0 || cursor.line > m_lineCount)
     throw std::out_of_range ("Cursor line out of range.");
 
-  TextModel::Builder builder;
   TextModel::PageInfo pageInfo = pageInfoForLine (cursor.line);
   Cursor pageCursor (cursor.line - pageInfo.firstLine, cursor.column);
 
@@ -87,8 +51,8 @@ shared_ptr<const TextModel> TextModel::insert (const Cursor& cursor, const Strin
 
     if (pageInfo.index >= m_pageCount) {
       oldLC = 0;
-      const Page editPage;
-      newEditPage = editPage.insert (pageCursor, text);
+      unique_ptr<const Page> editPage = createEmptyPage ();
+      newEditPage = editPage->insert (pageCursor, text);
     } else {
       oldLC = m_pages.get ()[pageInfo.index]->lineCount ();
       newEditPage = m_pages.get ()[pageInfo.index]->insert (pageCursor, text);

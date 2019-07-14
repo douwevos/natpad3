@@ -18,6 +18,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "TextDocumentTest.h"
+#include <natpad/textmodel/BasicTextModel.h>
 #include <natpad/textmodel/TextDocument.h>
 
 class TestDocumentListener : public DocumentListener {
@@ -59,7 +60,7 @@ const TestCase::Test* TextDocumentTest::getTests (void) {
 }
 
 static shared_ptr<const TextModel> createTextModel (void) {
-  TextModel emptyModel;
+  BasicTextModel emptyModel;
   return emptyModel.insert (Cursor (), "eerste regel\ntweede regel");
 }
 

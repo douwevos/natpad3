@@ -25,8 +25,11 @@
 #include <natpad/util/string.h>
 #include <natpad/textmodel/Page.h>
 #define private public
+#define protected public
 #include <natpad/textmodel/TextModel.h>
+#undef protected
 #undef private
+#include <natpad/textmodel/BasicTextModel.h>
 
 using std::map;
 
@@ -92,7 +95,7 @@ const TestCase::Test* TextModelTest::getTests (void) {
 void TextModelTest::testConstructor_void (void) {
   setTestName (__func__);
 
-  const TextModel model;
+  const BasicTextModel model;
   assertEquals (0, model.lineCount ());
   assertEquals (0, model.m_pageCount);
   assertTrue (model.m_editPageIndex < 0);
@@ -106,7 +109,7 @@ void TextModelTest::testConstructor_Reader_noLines (void) {
   StringConvert convert;
   StringReader stream (convert.from_bytes (""));
 
-  const TextModel model (stream);
+  const BasicTextModel model (stream);
   assertEquals (1, model.lineCount ());
   assertEquals (1, model.m_pageCount);
   assertTrue (model.m_editPageIndex < 0);
@@ -122,7 +125,7 @@ void TextModelTest::testConstructor_Reader_lessThanPreferredPageSizeLines (void)
   String s = createLines (expectedLineCount);
   StringReader stream (s);
 
-  const TextModel model (stream);
+  const BasicTextModel model (stream);
   const int lineCount = model.lineCount ();
   assertEquals (expectedLineCount, lineCount);
   assertEquals (1, model.m_pageCount);
@@ -142,7 +145,7 @@ void TextModelTest::testConstructor_Reader_exactlyPreferredPageSizeLines (void) 
   String s = createLines (expectedLineCount);
   StringReader stream (s);
 
-  const TextModel model (stream);
+  const BasicTextModel model (stream);
   const int lineCount = model.lineCount ();
   assertEquals (expectedLineCount, lineCount);
   assertEquals (1, model.m_pageCount);
@@ -162,7 +165,7 @@ void TextModelTest::testConstructor_Reader_moreThanPreferredPageSizeLines (void)
   String s = createLines (expectedLineCount);
   StringReader stream (s);
 
-  const TextModel model (stream);
+  const BasicTextModel model (stream);
   int lineCount = model.lineCount ();
   assertEquals (expectedLineCount, lineCount);
   assertEquals (4, model.m_pageCount);
@@ -189,7 +192,7 @@ void TextModelTest::testPageAt (void) {
     pages[i].reset (new Page);
   }
 
-  TextModel model;
+  BasicTextModel model;
   model.m_pages.reset (pages, [] (shared_ptr<const Page>* array) { delete[] array; });
   model.m_pageCount = 4;
   model.m_editPage.reset (new Page);
@@ -213,7 +216,7 @@ void TextModelTest::testPageInfoForLine (void) {
     pages[i] = createPage (lc[i]);
   }
 
-  TextModel model;
+  BasicTextModel model;
   model.m_pages.reset (pages, [] (shared_ptr<const Page>* array) { delete[] array; });
   model.m_pageCount = 3;
   model.m_lineCount = lc[0] + lc[1] + lc[2];
@@ -266,7 +269,7 @@ void TextModelTest::testLineAt (void) {
   pages[1] = createPage (Page::preferredSize);
   pages[2] = createPage (Page::preferredSize, 2 * Page::preferredSize);
 
-  TextModel model;
+  BasicTextModel model;
   model.m_pages.reset (pages, [] (shared_ptr<const Page>* array) { delete[] array; });
   model.m_pageCount = 3;
   model.m_lineCount = 3 * Page::preferredSize;
@@ -295,7 +298,7 @@ void TextModelTest::testLineAt (void) {
 void TextModelTest::testInsert_emptyModel (void) {
   setTestName (__func__);
 
-  shared_ptr<const TextModel> textModel = shared_ptr<const TextModel> (new TextModel);
+  shared_ptr<const TextModel> textModel = shared_ptr<const TextModel> (new BasicTextModel);
   textModel = textModel->insert (Cursor (), "hoi");
   assertEquals (1, textModel->lineCount ());
   assertEquals ("hoi", *textModel->lineAt (0)->text ());
@@ -319,7 +322,7 @@ void TextModelTest::testInsert_modifyLineOrAddAtEnd (void) {
   StringReader stream (s);
 
   map<int, String> changedLines;
-  shared_ptr<const TextModel> textModel = shared_ptr<const TextModel> (new TextModel (stream));
+  shared_ptr<const TextModel> textModel = shared_ptr<const TextModel> (new BasicTextModel (stream));
   assertEquals (3, textModel->m_pageCount);
 
   /* Updates an existing line in a model with no m_editPage selected: */

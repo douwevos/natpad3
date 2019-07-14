@@ -23,8 +23,6 @@
 #include <natpad/textmodel/Cursor.h>
 #include <natpad/textmodel/Line.h>
 
-using std::shared_ptr;
-
 class Page {
 private:
   shared_ptr<shared_ptr<Line>> m_lines;
