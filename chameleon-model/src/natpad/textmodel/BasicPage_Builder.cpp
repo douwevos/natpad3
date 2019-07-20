@@ -19,19 +19,19 @@
 
 #include <stdexcept>
 #include <natpad/util/StringUtils.h>
-#include "BasicTextModelPage.h"
+#include "BasicPage.h"
 
 #define NO_INDEX -1
 
-BasicTextModelPage::Builder::Builder (void) : m_editLineIndex (NO_INDEX), m_lineCount (0), m_setIndex (NO_INDEX) {
+BasicPage::Builder::Builder (void) : m_editLineIndex (NO_INDEX), m_lineCount (0), m_setIndex (NO_INDEX) {
 }
 
-shared_ptr<const BasicTextModelPage> BasicTextModelPage::Builder::build (void) {
+shared_ptr<const BasicPage> BasicPage::Builder::build (void) {
   if (m_setIndex < NO_INDEX || m_setIndex > m_lineCount)
-    throw std::out_of_range ("BasicTextModelPage::Builder::build: Cannot set or add a line at the specified index.");
+    throw std::out_of_range ("BasicPage::Builder::build: Cannot set or add a line at the specified index.");
   bool appendLine = m_setIndex == m_lineCount;
 
-  BasicTextModelPage* page = new BasicTextModelPage;
+  BasicPage* page = new BasicPage;
   page->m_lineCount = m_lineCount + appendLine;
 
   if (m_editLine && m_editLine->find ('\n') != String::npos)
@@ -39,10 +39,10 @@ shared_ptr<const BasicTextModelPage> BasicTextModelPage::Builder::build (void) {
   else
     buildSingleOrNoEditLine (page);
 
-  return shared_ptr<const BasicTextModelPage> (page);
+  return shared_ptr<const BasicPage> (page);
 }
 
-void BasicTextModelPage::Builder::buildMultipleEditLines (BasicTextModelPage* page) {
+void BasicPage::Builder::buildMultipleEditLines (BasicPage* page) {
   vector<shared_ptr<String>> linesToInsert = StringUtils::getLines (*m_editLine);
   page->m_editLine.reset (new Line (linesToInsert.back ()));
   linesToInsert.pop_back ();
@@ -101,7 +101,7 @@ void BasicTextModelPage::Builder::buildMultipleEditLines (BasicTextModelPage* pa
   }
 }
 
-void BasicTextModelPage::Builder::buildSingleOrNoEditLine (BasicTextModelPage* page) {
+void BasicPage::Builder::buildSingleOrNoEditLine (BasicPage* page) {
   if (m_setIndex != NO_INDEX) {
     shared_ptr<Line>* newLineArray = new shared_ptr<Line>[page->m_lineCount];
     for (int i = 0; i < m_setIndex; ++i) {
@@ -121,19 +121,19 @@ void BasicTextModelPage::Builder::buildSingleOrNoEditLine (BasicTextModelPage* p
   }
 }
 
-BasicTextModelPage::Builder& BasicTextModelPage::Builder::editLine (int index, const shared_ptr<const String>& line) {
+BasicPage::Builder& BasicPage::Builder::editLine (int index, const shared_ptr<const String>& line) {
   m_editLineIndex = index;
   m_editLine = line;
   return *this;
 }
 
-BasicTextModelPage::Builder& BasicTextModelPage::Builder::lines (const shared_ptr<shared_ptr<Line>>& lines, int lineCount) {
+BasicPage::Builder& BasicPage::Builder::lines (const shared_ptr<shared_ptr<Line>>& lines, int lineCount) {
   m_lines = lines;
   m_lineCount = lineCount;
   return *this;
 }
 
-BasicTextModelPage::Builder& BasicTextModelPage::Builder::reset (void) {
+BasicPage::Builder& BasicPage::Builder::reset (void) {
   m_lines.reset ();
   m_editLine.reset ();
   m_setLine.reset ();
@@ -143,9 +143,9 @@ BasicTextModelPage::Builder& BasicTextModelPage::Builder::reset (void) {
   return *this;
 }
 
-BasicTextModelPage::Builder& BasicTextModelPage::Builder::setLine (int index, const shared_ptr<Line>& line) {
+BasicPage::Builder& BasicPage::Builder::setLine (int index, const shared_ptr<Line>& line) {
   if (m_setIndex != NO_INDEX)
-    throw std::runtime_error ("BasicTextModelPage::Builder::setLine: Modified line already set.");
+    throw std::runtime_error ("BasicPage::Builder::setLine: Modified line already set.");
   m_setIndex = index;
   m_setLine = line;
   return *this;

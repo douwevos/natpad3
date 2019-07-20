@@ -17,19 +17,19 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef BASIC_TEXT_MODEL_PAGE_TEST_INCLUDED
-#define BASIC_TEXT_MODEL_PAGE_TEST_INCLUDED
+#ifndef BASIC_PAGE_TEST_INCLUDED
+#define BASIC_PAGE_TEST_INCLUDED
 
 #include <memory>
 #include <testutils/TestCase.h>
 
 using std::unique_ptr;
 
-class BasicTextModelPageTest : public TestCase {
+class BasicPageTest : public TestCase {
 public:
-  BasicTextModelPageTest (void);
+  BasicPageTest (void);
 
-  static unique_ptr<BasicTextModelPageTest> create (void);
+  static unique_ptr<BasicPageTest> create (void);
 
   int getTestCount (void) override;
   const Test* getTests (void) override;

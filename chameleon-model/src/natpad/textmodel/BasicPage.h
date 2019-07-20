@@ -17,12 +17,12 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef __NATPAD_TEXTMODEL_BASIC_TEXT_MODEL_PAGE_INCLUDED
-#define __NATPAD_TEXTMODEL_BASIC_TEXT_MODEL_PAGE_INCLUDED
+#ifndef __NATPAD_TEXTMODEL_BASIC_PAGE_INCLUDED
+#define __NATPAD_TEXTMODEL_BASIC_PAGE_INCLUDED
 
 #include <natpad/textmodel/Page.h>
 
-class BasicTextModelPage : public Page {
+class BasicPage : public Page {
 public:
   static const int preferredSize = 1024;
 
@@ -45,15 +45,15 @@ public:
     Builder& operator= (const Builder&) = delete;
     Builder& operator= (Builder&&) = delete;
 
-    shared_ptr<const BasicTextModelPage> build (void);
+    shared_ptr<const BasicPage> build (void);
     Builder& editLine (int index, const shared_ptr<const String>& line);
     Builder& lines (const shared_ptr<shared_ptr<Line>>& lines, int lineCount);
     Builder& reset (void);
     Builder& setLine (int index, const shared_ptr<Line>& line);
 
   private:
-    void buildSingleOrNoEditLine (BasicTextModelPage* page);
-    void buildMultipleEditLines (BasicTextModelPage* page);
+    void buildSingleOrNoEditLine (BasicPage* page);
+    void buildMultipleEditLines (BasicPage* page);
   };
 };
 

@@ -1,5 +1,5 @@
 #include "LineIteratorTest.h"
-#include "BasicTextModelPageTest.h"
+#include "BasicPageTest.h"
 #include "StringReaderTest.h"
 #include "StringUtilsTest.h"
 #include "TextDocumentTest.h"
@@ -10,7 +10,7 @@ int main (int argc, char** args, char** env) {
   StringUtilsTest::create ()->run ();
   Utf8FileReaderTest::create ()->run ();
   StringReaderTest::create ()->run ();
-  BasicTextModelPageTest::create ()->run ();
+  BasicPageTest::create ()->run ();
   TextModelTest::create ()->run ();
   TextDocumentTest::create ()->run ();
   LineIteratorTest::create ()->run ();

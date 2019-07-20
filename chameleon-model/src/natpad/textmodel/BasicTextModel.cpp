@@ -19,7 +19,7 @@
 
 #include <natpad/textmodel/BasicTextModel.h>
 #include <natpad/util/StringUtils.h>
-#include "BasicTextModelPage.h"
+#include "BasicPage.h"
 
 BasicTextModel::BasicTextModel (void) {
 }
@@ -28,30 +28,30 @@ BasicTextModel::BasicTextModel (Reader& stream) {
   vector<shared_ptr<String>> lines = StringUtils::getLines (stream);
   if (!lines.empty ()) {
     m_lineCount = lines.size ();
-    m_pageCount = m_lineCount / BasicTextModelPage::preferredSize;
-    int remainder = m_lineCount % BasicTextModelPage::preferredSize;
+    m_pageCount = m_lineCount / BasicPage::preferredSize;
+    int remainder = m_lineCount % BasicPage::preferredSize;
     if (remainder != 0)
       ++m_pageCount;
     else
-      remainder = BasicTextModelPage::preferredSize;
+      remainder = BasicPage::preferredSize;
     shared_ptr<const Page>* pages = new shared_ptr<const Page>[m_pageCount];
 
     int i;
-    BasicTextModelPage::Builder pageBuilder;
+    BasicPage::Builder pageBuilder;
     for (i = 0; i < m_pageCount - 1; ++i) {
-      shared_ptr<Line>* lineArray = new shared_ptr<Line>[BasicTextModelPage::preferredSize];
-      for (int j = 0; j < BasicTextModelPage::preferredSize; ++j) {
-        lineArray[j].reset (new Line (lines[BasicTextModelPage::preferredSize * i + j]));
+      shared_ptr<Line>* lineArray = new shared_ptr<Line>[BasicPage::preferredSize];
+      for (int j = 0; j < BasicPage::preferredSize; ++j) {
+        lineArray[j].reset (new Line (lines[BasicPage::preferredSize * i + j]));
       }
       pages[i] =
-          pageBuilder.lines (shared_ptr<shared_ptr<Line>> (lineArray, [] (shared_ptr<Line>* array) { delete[] array; }), BasicTextModelPage::preferredSize)
+          pageBuilder.lines (shared_ptr<shared_ptr<Line>> (lineArray, [] (shared_ptr<Line>* array) { delete[] array; }), BasicPage::preferredSize)
                      .build ();
       pageBuilder.reset ();
     }
 
     shared_ptr<Line>* lineArray = new shared_ptr<Line>[remainder];
     for (int j = 0; j < remainder; ++j) {
-      lineArray[j].reset (new Line (lines[BasicTextModelPage::preferredSize * i + j]));
+      lineArray[j].reset (new Line (lines[BasicPage::preferredSize * i + j]));
     }
     pages[i] =
         pageBuilder.lines (shared_ptr<shared_ptr<Line>> (lineArray, [] (shared_ptr<Line>* array) { delete[] array; }), remainder)
@@ -62,7 +62,7 @@ BasicTextModel::BasicTextModel (Reader& stream) {
 }
 
 unique_ptr<const Page> BasicTextModel::createEmptyPage (void) const {
-  return unique_ptr<const Page> (new BasicTextModelPage);
+  return unique_ptr<const Page> (new BasicPage);
 }
 
 shared_ptr<const TextModel> BasicTextModel::insert (const Cursor& cursor, const String& text) const {

@@ -18,10 +18,10 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <natpad/util/string.h>
-#include "BasicTextModelPageTest.h"
+#include "BasicPageTest.h"
 
 #define protected public
-#include "../src/natpad/textmodel/BasicTextModelPage.h"
+#include "../src/natpad/textmodel/BasicPage.h"
 #undef protected
 
 #define FIRST_LINE  "eerste regel"
@@ -31,66 +31,66 @@
 
 #define L(x) L ## x
 
-using Test = void (BasicTextModelPageTest::*) (void);
+using Test = void (BasicPageTest::*) (void);
 
 static const Test tests[] = {
-  &BasicTextModelPageTest::testConstructor,
-  &BasicTextModelPageTest::testLineAt,
-  &BasicTextModelPageTest::testInsert_emptyPage,
-  &BasicTextModelPageTest::testInsert_newNonemptyPage,
-  &BasicTextModelPageTest::testInsert_beginOfLine,
-  &BasicTextModelPageTest::testInsert_middleOfLine,
-  &BasicTextModelPageTest::testInsert_endOfLine,
-  &BasicTextModelPageTest::testInsert_sameLineAsBefore,
-  &BasicTextModelPageTest::testInsert_differentLineAsBefore,
-  &BasicTextModelPageTest::testInsert_beforeAddLineNowAddLine,
-  &BasicTextModelPageTest::testInsert_beforeAddLineNowDifferentExistingLine,
-  &BasicTextModelPageTest::testInsert_multipleLines
+  &BasicPageTest::testConstructor,
+  &BasicPageTest::testLineAt,
+  &BasicPageTest::testInsert_emptyPage,
+  &BasicPageTest::testInsert_newNonemptyPage,
+  &BasicPageTest::testInsert_beginOfLine,
+  &BasicPageTest::testInsert_middleOfLine,
+  &BasicPageTest::testInsert_endOfLine,
+  &BasicPageTest::testInsert_sameLineAsBefore,
+  &BasicPageTest::testInsert_differentLineAsBefore,
+  &BasicPageTest::testInsert_beforeAddLineNowAddLine,
+  &BasicPageTest::testInsert_beforeAddLineNowDifferentExistingLine,
+  &BasicPageTest::testInsert_multipleLines
 };
 
-static unique_ptr<const BasicTextModelPage> createEmptyPage (void) {
-  return unique_ptr<const BasicTextModelPage> (new BasicTextModelPage);
+static unique_ptr<const BasicPage> createEmptyPage (void) {
+  return unique_ptr<const BasicPage> (new BasicPage);
 }
 
-static unique_ptr<const BasicTextModelPage> createNonemptyPage (void) {
+static unique_ptr<const BasicPage> createNonemptyPage (void) {
   StringConvert convert;
   shared_ptr<Line>* lines = new shared_ptr<Line>[4];
   lines[0].reset (new Line (shared_ptr<const String> (new String (convert.from_bytes (FIRST_LINE)))));
   lines[1].reset (new Line (shared_ptr<const String> (new String (convert.from_bytes (SECOND_LINE)))));
   lines[2].reset (new Line (shared_ptr<const String> (new String (convert.from_bytes (THIRD_LINE)))));
   lines[3].reset (new Line (shared_ptr<const String> (new String (convert.from_bytes (FOURTH_LINE)))));
-  BasicTextModelPage* page = new BasicTextModelPage;
+  BasicPage* page = new BasicPage;
   page->m_lines.reset (lines, [] (shared_ptr<Line>* array) { delete[] array; });
   page->m_lineCount = 4;
-  return unique_ptr<const BasicTextModelPage> (page);
+  return unique_ptr<const BasicPage> (page);
 }
 
-BasicTextModelPageTest::BasicTextModelPageTest (void) : TestCase ("BasicTextModelPageTest") {
+BasicPageTest::BasicPageTest (void) : TestCase ("BasicPageTest") {
 }
 
-unique_ptr<BasicTextModelPageTest> BasicTextModelPageTest::create (void) {
-  return unique_ptr<BasicTextModelPageTest> (new BasicTextModelPageTest);
+unique_ptr<BasicPageTest> BasicPageTest::create (void) {
+  return unique_ptr<BasicPageTest> (new BasicPageTest);
 }
 
-int BasicTextModelPageTest::getTestCount (void) {
+int BasicPageTest::getTestCount (void) {
   return sizeof (tests) / sizeof (Test);
 }
 
-const TestCase::Test* BasicTextModelPageTest::getTests (void) {
+const TestCase::Test* BasicPageTest::getTests (void) {
   return (TestCase::Test*) tests;
 }
 
-void BasicTextModelPageTest::testConstructor (void) {
+void BasicPageTest::testConstructor (void) {
   setTestName (__func__);
 
-  const BasicTextModelPage page;
+  const BasicPage page;
   assertEquals (0, page.lineCount ());
 }
 
-void BasicTextModelPageTest::testLineAt (void) {
+void BasicPageTest::testLineAt (void) {
   setTestName (__func__);
 
-  unique_ptr<const BasicTextModelPage> page = createNonemptyPage ();
+  unique_ptr<const BasicPage> page = createNonemptyPage ();
   assertEquals (4, page->lineCount ());
   assertEquals (FIRST_LINE, *page->lineAt (0)->text ());
   assertEquals (SECOND_LINE, *page->lineAt (1)->text ());
@@ -98,7 +98,7 @@ void BasicTextModelPageTest::testLineAt (void) {
   assertEquals (FOURTH_LINE, *page->lineAt (3)->text ());
 }
 
-void BasicTextModelPageTest::testInsert_emptyPage (void) {
+void BasicPageTest::testInsert_emptyPage (void) {
   setTestName (__func__);
 
   unique_ptr<const Page> page = createEmptyPage ();
@@ -110,7 +110,7 @@ void BasicTextModelPageTest::testInsert_emptyPage (void) {
   assertEquals ("Hallo wereld", *newPage->lineAt (0)->text ());
 }
 
-void BasicTextModelPageTest::testInsert_newNonemptyPage (void) {
+void BasicPageTest::testInsert_newNonemptyPage (void) {
   setTestName (__func__);
 
   unique_ptr<const Page> page = createNonemptyPage ();
@@ -127,7 +127,7 @@ void BasicTextModelPageTest::testInsert_newNonemptyPage (void) {
   assertEquals ("vijfde regel", *newPage->lineAt (4)->text ());
 }
 
-void BasicTextModelPageTest::testInsert_beginOfLine (void) {
+void BasicPageTest::testInsert_beginOfLine (void) {
   setTestName (__func__);
 
   unique_ptr<const Page> page = createNonemptyPage ();
@@ -143,7 +143,7 @@ void BasicTextModelPageTest::testInsert_beginOfLine (void) {
   assertEquals (FOURTH_LINE, *newPage->lineAt (3)->text ());
 }
 
-void BasicTextModelPageTest::testInsert_middleOfLine (void) {
+void BasicPageTest::testInsert_middleOfLine (void) {
   setTestName (__func__);
 
   unique_ptr<const Page> page = createNonemptyPage ();
@@ -160,7 +160,7 @@ void BasicTextModelPageTest::testInsert_middleOfLine (void) {
   assertEquals (FOURTH_LINE, *newPage->lineAt (3)->text ());
 }
 
-void BasicTextModelPageTest::testInsert_endOfLine (void) {
+void BasicPageTest::testInsert_endOfLine (void) {
   setTestName (__func__);
 
   unique_ptr<const Page> page = createNonemptyPage ();
@@ -177,7 +177,7 @@ void BasicTextModelPageTest::testInsert_endOfLine (void) {
   assertEquals ("vierde regel met toevoeging op het eind", *newPage->lineAt (3)->text ());
 }
 
-void BasicTextModelPageTest::testInsert_sameLineAsBefore (void) {
+void BasicPageTest::testInsert_sameLineAsBefore (void) {
   setTestName (__func__);
 
   unique_ptr<const Page> page = createNonemptyPage ();
@@ -202,7 +202,7 @@ void BasicTextModelPageTest::testInsert_sameLineAsBefore (void) {
   assertEquals (0, cursor.line);
 }
 
-void BasicTextModelPageTest::testInsert_differentLineAsBefore (void) {
+void BasicPageTest::testInsert_differentLineAsBefore (void) {
   setTestName (__func__);
 
   unique_ptr<const Page> page = createNonemptyPage ();
@@ -217,7 +217,7 @@ void BasicTextModelPageTest::testInsert_differentLineAsBefore (void) {
   assertEquals ("vierde en laatste regel", *newPage->lineAt (3)->text ());
 }
 
-void BasicTextModelPageTest::testInsert_beforeAddLineNowAddLine (void) {
+void BasicPageTest::testInsert_beforeAddLineNowAddLine (void) {
   setTestName (__func__);
 
   unique_ptr<const Page> page = createNonemptyPage ();
@@ -239,7 +239,7 @@ void BasicTextModelPageTest::testInsert_beforeAddLineNowAddLine (void) {
   assertEquals (5, cursor.line);
 }
 
-void BasicTextModelPageTest::testInsert_beforeAddLineNowDifferentExistingLine (void) {
+void BasicPageTest::testInsert_beforeAddLineNowDifferentExistingLine (void) {
   setTestName (__func__);
 
   unique_ptr<const Page> page = createNonemptyPage ();
@@ -256,7 +256,7 @@ void BasicTextModelPageTest::testInsert_beforeAddLineNowDifferentExistingLine (v
   assertEquals ("vijfde regel", *newPage->lineAt (4)->text ());
 }
 
-void BasicTextModelPageTest::testInsert_multipleLines (void) {
+void BasicPageTest::testInsert_multipleLines (void) {
   setTestName (__func__);
 
   unique_ptr<const Page> page = createNonemptyPage ();
