@@ -24,54 +24,25 @@
 #include <natpad/textmodel/Line.h>
 
 class Page {
-private:
+protected:
   shared_ptr<shared_ptr<Line>> m_lines;
   shared_ptr<Line> m_editLine;
   int m_editLineIndex;
   int m_lineCount;
 
 public:
-  static const int preferredSize = 1024;
-
   Page (void);
+  virtual ~Page (void);
 
   /* Constructs a new Page from this one, with the specified text inserted at the
      the position of the specified cursor; cursor will change value to the position
      where it ends up after insertion.  The new page with the inserted text is
      returned.  */
-  shared_ptr<const Page> insert (Cursor& cursor, const String& text) const;
+  virtual shared_ptr<const Page> insert (Cursor& cursor, const String& text) const = 0;
   shared_ptr<Line> lineAt (int line) const;
   int lineCount (void) const;
 
-  class Builder {
-  private:
-    shared_ptr<shared_ptr<Line>> m_lines;
-    shared_ptr<const String> m_editLine;
-    shared_ptr<Line> m_setLine;
-    int m_editLineIndex;
-    int m_lineCount;
-    int m_setIndex;
-
-  public:
-    Builder (void);
-    Builder (const Builder&) = delete;
-    Builder (Builder&&) = delete;
-
-    Builder& operator= (const Builder&) = delete;
-    Builder& operator= (Builder&&) = delete;
-
-    shared_ptr<const Page> build (void);
-    Builder& editLine (int index, const shared_ptr<const String>& line);
-    Builder& lines (const shared_ptr<shared_ptr<Line>>& lines, int lineCount);
-    Builder& reset (void);
-    Builder& setLine (int index, const shared_ptr<Line>& line);
-
-  private:
-    void buildSingleOrNoEditLine (Page* page);
-    void buildMultipleEditLines (Page* page);
-  };
-
-private:
+protected:
   void validateCursorForInsert (const Cursor& cursor) const;
 };
 

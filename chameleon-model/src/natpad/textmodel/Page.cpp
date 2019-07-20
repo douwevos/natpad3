@@ -25,36 +25,7 @@
 Page::Page (void) : m_lineCount (0), m_editLineIndex (NO_INDEX) {
 }
 
-shared_ptr<const Page> Page::insert (Cursor& cursor, const String& text) const {
-  validateCursorForInsert (cursor);
-
-  Page::Builder builder;
-  shared_ptr<String> line;
-  int cursorDistanceToLineEnd;
-  if (cursor.line == m_editLineIndex) {
-    line.reset (new String (*m_editLine->text ()));
-    cursorDistanceToLineEnd = line->length () - cursor.column;
-    line->insert (cursor.column, text);
-  } else {
-    if (cursor.line >= m_lineCount) {
-      line.reset (new String (text));
-      cursorDistanceToLineEnd = 0;
-    } else {
-      line.reset (new String (*m_lines.get ()[cursor.line]->text ()));
-      cursorDistanceToLineEnd = line->length () - cursor.column;
-      line->insert (cursor.column, text);
-    }
-    if (m_editLineIndex != NO_INDEX) {
-      builder.setLine (m_editLineIndex, m_editLine);
-    }
-  }
-  shared_ptr<const Page> resultPage =
-      builder.editLine (cursor.line, line)
-          .lines (m_lines, m_lineCount)
-          .build ();
-  cursor.line = resultPage->m_editLineIndex;
-  cursor.column = resultPage->m_editLine->length () - cursorDistanceToLineEnd;
-  return resultPage;
+Page::~Page (void) {
 }
 
 shared_ptr<Line> Page::lineAt (int line) const {

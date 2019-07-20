@@ -23,7 +23,7 @@
 
 #include <natpad/io/StringReader.h>
 #include <natpad/util/string.h>
-#include <natpad/textmodel/Page.h>
+#include "../src/natpad/textmodel/BasicTextModelPage.h"
 #define private public
 #define protected public
 #include <natpad/textmodel/TextModel.h>
@@ -72,7 +72,7 @@ static shared_ptr<const Page> createPage (int lineCount, int index = 0) {
   for (int i = 0; i < lineCount; ++i) {
     lines[i].reset (new Line (shared_ptr<const String> (new String (createLine (index++)))));
   }
-  Page::Builder builder;
+  BasicTextModelPage::Builder builder;
   return builder.lines (shared_ptr<shared_ptr<Line>> (lines, [] (shared_ptr<Line>* array) { delete[] array; }), lineCount)
                 .build ();
 }
@@ -119,8 +119,8 @@ void TextModelTest::testConstructor_Reader_noLines (void) {
 void TextModelTest::testConstructor_Reader_lessThanPreferredPageSizeLines (void) {
   setTestName (__func__);
 
-  assertTrue (Page::preferredSize > 10);
-  const int expectedLineCount = Page::preferredSize - 1;
+  assertTrue (BasicTextModelPage::preferredSize > 10);
+  const int expectedLineCount = BasicTextModelPage::preferredSize - 1;
 
   String s = createLines (expectedLineCount);
   StringReader stream (s);
@@ -140,7 +140,7 @@ void TextModelTest::testConstructor_Reader_lessThanPreferredPageSizeLines (void)
 void TextModelTest::testConstructor_Reader_exactlyPreferredPageSizeLines (void) {
   setTestName (__func__);
 
-  const int expectedLineCount = Page::preferredSize;
+  const int expectedLineCount = BasicTextModelPage::preferredSize;
 
   String s = createLines (expectedLineCount);
   StringReader stream (s);
@@ -160,7 +160,7 @@ void TextModelTest::testConstructor_Reader_exactlyPreferredPageSizeLines (void) 
 void TextModelTest::testConstructor_Reader_moreThanPreferredPageSizeLines (void) {
   setTestName (__func__);
 
-  const int expectedLineCount = 3 * Page::preferredSize + 1;
+  const int expectedLineCount = 3 * BasicTextModelPage::preferredSize + 1;
 
   String s = createLines (expectedLineCount);
   StringReader stream (s);
@@ -175,11 +175,11 @@ void TextModelTest::testConstructor_Reader_moreThanPreferredPageSizeLines (void)
     shared_ptr<const Page> page = model.m_pages.get ()[i];
     lineCount = page->lineCount ();
     if (i < 3)
-      assertEquals (Page::preferredSize, lineCount);
+      assertEquals (BasicTextModelPage::preferredSize, lineCount);
     else
       assertEquals (1, lineCount);
     for (int j = 0; j < lineCount; ++j) {
-      assertEquals (createLine (i * Page::preferredSize + j), *page->lineAt (j)->text ());
+      assertEquals (createLine (i * BasicTextModelPage::preferredSize + j), *page->lineAt (j)->text ());
     }
   }
 }
@@ -189,13 +189,13 @@ void TextModelTest::testPageAt (void) {
 
   shared_ptr<const Page>* pages = new shared_ptr<const Page>[4];
   for (int i = 0; i < 4; ++i) {
-    pages[i].reset (new Page);
+    pages[i].reset (new BasicTextModelPage);
   }
 
   BasicTextModel model;
   model.m_pages.reset (pages, [] (shared_ptr<const Page>* array) { delete[] array; });
   model.m_pageCount = 4;
-  model.m_editPage.reset (new Page);
+  model.m_editPage.reset (new BasicTextModelPage);
   model.m_editPageIndex = 2;
 
   for (int i = 0; i < 4; ++i) {
@@ -209,14 +209,20 @@ void TextModelTest::testPageAt (void) {
 void TextModelTest::testPageInfoForLine (void) {
   setTestName (__func__);
 
-  int lc[] = {Page::preferredSize / 3, Page::preferredSize / 2, Page::preferredSize - 1};
+  BasicTextModel model;
+  {
+    TextModel::PageInfo info = model.pageInfoForLine (0);
+    assertEquals (0, info.index);
+    assertEquals (0, info.firstLine);
+  }
+
+  int lc[] = {BasicTextModelPage::preferredSize / 3, BasicTextModelPage::preferredSize / 2, BasicTextModelPage::preferredSize - 1};
 
   shared_ptr<const Page>* pages = new shared_ptr<const Page>[3];
   for (int i = 0; i < 3; ++i) {
     pages[i] = createPage (lc[i]);
   }
 
-  BasicTextModel model;
   model.m_pages.reset (pages, [] (shared_ptr<const Page>* array) { delete[] array; });
   model.m_pageCount = 3;
   model.m_lineCount = lc[0] + lc[1] + lc[2];
@@ -235,10 +241,10 @@ void TextModelTest::testPageInfoForLine (void) {
     }
   }
 
-  model.m_editPage = createPage (Page::preferredSize);
+  model.m_editPage = createPage (BasicTextModelPage::preferredSize);
   model.m_editPageIndex = 3;
-  model.m_lineCount += Page::preferredSize;
-  for (int i = 0; i < model.m_lineCount; ++i) {
+  model.m_lineCount += BasicTextModelPage::preferredSize;
+  for (int i = 0; i <= model.m_lineCount; ++i) {
     TextModel::PageInfo info = model.pageInfoForLine (i);
     if (i < lc[0]) {
       assertEquals (0, info.index);
@@ -254,10 +260,6 @@ void TextModelTest::testPageInfoForLine (void) {
       assertEquals (lc[0] + lc[1] + lc[2], info.firstLine);
     }
   }
-
-  TextModel::PageInfo info = model.pageInfoForLine (model.m_lineCount);
-  assertEquals (4, info.index);
-  assertEquals (model.m_lineCount, info.firstLine);
 }
 
 void TextModelTest::testLineAt (void) {
@@ -265,15 +267,15 @@ void TextModelTest::testLineAt (void) {
 
   StringConvert convert;
   shared_ptr<const Page>* pages = new shared_ptr<const Page>[3];
-  pages[0] = createPage (Page::preferredSize);
-  pages[1] = createPage (Page::preferredSize);
-  pages[2] = createPage (Page::preferredSize, 2 * Page::preferredSize);
+  pages[0] = createPage (BasicTextModelPage::preferredSize);
+  pages[1] = createPage (BasicTextModelPage::preferredSize);
+  pages[2] = createPage (BasicTextModelPage::preferredSize, 2 * BasicTextModelPage::preferredSize);
 
   BasicTextModel model;
   model.m_pages.reset (pages, [] (shared_ptr<const Page>* array) { delete[] array; });
   model.m_pageCount = 3;
-  model.m_lineCount = 3 * Page::preferredSize;
-  model.m_editPage = createPage (Page::preferredSize, Page::preferredSize);
+  model.m_lineCount = 3 * BasicTextModelPage::preferredSize;
+  model.m_editPage = createPage (BasicTextModelPage::preferredSize, BasicTextModelPage::preferredSize);
   model.m_editPageIndex = 1;
 
   for (int i = 0; i < model.m_lineCount; ++i) {
@@ -310,7 +312,7 @@ void TextModelTest::testInsert_emptyModel (void) {
 static void updateChangedLinesMap (map<int, String>& changedLines, int lineNo, const std::string& appendedText) {
   StringConvert convert;
   String& line = changedLines[lineNo];
-  if (line.empty () && lineNo < 3 * Page::preferredSize - 1)
+  if (line.empty () && lineNo < 3 * BasicTextModelPage::preferredSize - 1)
     line = createLine (lineNo);
   line += convert.from_bytes (appendedText);
 }
@@ -318,7 +320,7 @@ static void updateChangedLinesMap (map<int, String>& changedLines, int lineNo, c
 void TextModelTest::testInsert_modifyLineOrAddAtEnd (void) {
   setTestName (__func__);
 
-  String s = createLines (3 * Page::preferredSize - 1);
+  String s = createLines (3 * BasicTextModelPage::preferredSize - 1);
   StringReader stream (s);
 
   map<int, String> changedLines;
@@ -326,32 +328,32 @@ void TextModelTest::testInsert_modifyLineOrAddAtEnd (void) {
   assertEquals (3, textModel->m_pageCount);
 
   /* Updates an existing line in a model with no m_editPage selected: */
-  textModel = textModel->insert (Cursor (Page::preferredSize + 4, 5), "A");
-  updateChangedLinesMap (changedLines, Page::preferredSize + 4, "A");
+  textModel = textModel->insert (Cursor (BasicTextModelPage::preferredSize + 4, 5), "A");
+  updateChangedLinesMap (changedLines, BasicTextModelPage::preferredSize + 4, "A");
 
   /* Updates an existing line on the same m_editPage: */
-  textModel = textModel->insert (Cursor (Page::preferredSize + 2, 5), "B");
-  updateChangedLinesMap (changedLines, Page::preferredSize + 2, "B");
+  textModel = textModel->insert (Cursor (BasicTextModelPage::preferredSize + 2, 5), "B");
+  updateChangedLinesMap (changedLines, BasicTextModelPage::preferredSize + 2, "B");
 
   /* Update the same line: */
-  textModel = textModel->insert (Cursor (Page::preferredSize + 2, 6), "C");
-  updateChangedLinesMap (changedLines, Page::preferredSize + 2, "C");
+  textModel = textModel->insert (Cursor (BasicTextModelPage::preferredSize + 2, 6), "C");
+  updateChangedLinesMap (changedLines, BasicTextModelPage::preferredSize + 2, "C");
 
   /* Update a line on different page: */
-  textModel = textModel->insert (Cursor (2 * Page::preferredSize + 3, 5), "D");
-  updateChangedLinesMap (changedLines, 2 * Page::preferredSize + 3, "D");
+  textModel = textModel->insert (Cursor (2 * BasicTextModelPage::preferredSize + 3, 5), "D");
+  updateChangedLinesMap (changedLines, 2 * BasicTextModelPage::preferredSize + 3, "D");
 
   /* Add a line to that page: */
-  textModel = textModel->insert (Cursor (3 * Page::preferredSize - 1, 0), "E");
-  updateChangedLinesMap (changedLines, 3 * Page::preferredSize - 1, "E");
+  textModel = textModel->insert (Cursor (3 * BasicTextModelPage::preferredSize - 1, 0), "E");
+  updateChangedLinesMap (changedLines, 3 * BasicTextModelPage::preferredSize - 1, "E");
   assertEquals (2, textModel->m_editPageIndex);
 
-  /* Add another line, on a new page: */
-  textModel = textModel->insert (Cursor (3 * Page::preferredSize, 0), "F");
-  updateChangedLinesMap (changedLines, 3 * Page::preferredSize, "F");
-  assertEquals (3, textModel->m_editPageIndex);
+  /* Add another line to that page, letting it grow beyond the preferred size: */
+  textModel = textModel->insert (Cursor (3 * BasicTextModelPage::preferredSize, 0), "F");
+  updateChangedLinesMap (changedLines, 3 * BasicTextModelPage::preferredSize, "F");
+  assertEquals (2, textModel->m_editPageIndex);
 
-  int expectedLineCount = 3 * Page::preferredSize + 1;
+  int expectedLineCount = 3 * BasicTextModelPage::preferredSize + 1;
   assertEquals (expectedLineCount, textModel->lineCount ());
   for (int i = 0; i < expectedLineCount; ++i) {
     String str;

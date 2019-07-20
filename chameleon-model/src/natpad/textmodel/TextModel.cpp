@@ -125,10 +125,7 @@ TextModel::PageInfo TextModel::pageInfoForLine (int line) const {
   }
 
   --i;
-  if (line < maxLine || pageAt (i)->lineCount () < Page::preferredSize)
-    return TextModel::PageInfo (i, minLine);
-
-  return TextModel::PageInfo (pageCount, maxLine);
+  return TextModel::PageInfo (i, minLine);
 }
 
 TextModel::PageInfo::PageInfo (int index, int firstLine) : index (index), firstLine (firstLine) {
