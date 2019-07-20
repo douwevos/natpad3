@@ -1,3 +1,4 @@
+#include "LayoutLineTest.h"
 #include "LineIteratorTest.h"
 #include "BasicPageTest.h"
 #include "StringReaderTest.h"
@@ -14,5 +15,6 @@ int main (int argc, char** args, char** env) {
   TextModelTest::create ()->run ();
   TextDocumentTest::create ()->run ();
   LineIteratorTest::create ()->run ();
+  LayoutLineTest::create ()-> run ();
   return 0;
 }
