@@ -34,6 +34,8 @@ public:
 
   int length (void) const override;
   shared_ptr<const String> text (void) const override;
+  int lineIndex (void) const;
+  int startIndex (void) const;
 };
 
 #endif

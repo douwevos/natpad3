@@ -33,6 +33,14 @@ int LayoutLine::length (void) const {
   return m_length;
 }
 
+int LayoutLine::lineIndex (void) const {
+  return m_lineIndex;
+}
+
+int LayoutLine::startIndex (void) const {
+  return m_startIndex;
+}
+
 shared_ptr<const String> LayoutLine::text (void) const {
   if (!m_text || m_text->length () == m_length) {
     return m_text;
