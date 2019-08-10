@@ -17,6 +17,7 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#include <stdexcept> /* TEMP INCLUDE */
 #include "LayoutLine.h"
 #include "LayoutPage.h"
 
@@ -65,6 +66,25 @@ void LayoutPage::copyLines (shared_ptr<Line>* dstArray, int dstIdx, shared_ptr<L
   }
 }
 
+void LayoutPage::determineNewCursorAndEditLine (
+    Cursor& cursor,
+    LayoutPage* newPage,
+    const Cursor& cursorManagedPage,
+    int possibleNewEditLineIndex) const {
+  shared_ptr<Line>* lineArray = newPage->m_lines.get ();
+  int i = possibleNewEditLineIndex;
+  while (cursorManagedPage.column < (static_cast<LayoutLine*> (lineArray[i].get ()))->startIndex ()) {
+    --i;
+  }
+  cursor.line = i;
+  cursor.column = cursorManagedPage.column - (static_cast<LayoutLine*> (lineArray[i].get ()))->startIndex ();
+
+  if (cursor.line == possibleNewEditLineIndex && newPage->m_editLineIndex == NO_INDEX) {
+    newPage->m_editLineIndex = possibleNewEditLineIndex;
+    newPage->m_editLine = lineArray[possibleNewEditLineIndex];
+  }
+}
+
 shared_ptr<const Page> LayoutPage::insert (Cursor& cursor, const String& text) const {
   validateCursorForInsert (cursor);
 
@@ -76,7 +96,7 @@ shared_ptr<const Page> LayoutPage::insert (Cursor& cursor, const String& text) c
   } else {
   }
 
-
+  throw std::runtime_error ("(Part of) LayoutPage::insert not yet implemented.");
   /* return newpage; */
 }
 
@@ -99,29 +119,26 @@ shared_ptr<const Page> LayoutPage::insertInEditLine (Cursor& cursor, const Strin
   shared_ptr<const Page> newManagedPage = m_page->insert (cursorManagedPage, text);
   newPage->m_page = newManagedPage;
 
+  int possibleNewEditLineIndex;
   if (cursorManagedPage.line == lineIndex) {
     /* Number of lines managed page remains constant.  */
-    insertInEditLine_linesManagedPageConstant (newPage, lineIndex, startIndex);
+    possibleNewEditLineIndex = insertInEditLine_linesManagedPageConstant (newPage, lineIndex, startIndex);
 
   } else {
     /* Number of lines managed page increased.  */
     int deltaLineCountManagedPage = cursorManagedPage.line - lineIndex;
-    insertInEditLine_linesManagedPageIncreased (newPage, lineIndex, startIndex, deltaLineCountManagedPage);
+    possibleNewEditLineIndex = insertInEditLine_linesManagedPageIncreased (newPage, lineIndex, startIndex, deltaLineCountManagedPage);
   }
 
-  /* TODO:
-     Determine new cursor and, if newPage->m_editLineIndex == NO_INDEX, an new m_editLine if possible.
-   */
-
-
-  /* Vergeet niet de binnenkomende cursor bij te werken!  */
+  determineNewCursorAndEditLine (cursor, newPage, cursorManagedPage, possibleNewEditLineIndex);
   return shared_ptr<const Page> (newPage);
 }
 
-void LayoutPage::insertInEditLine_linesManagedPageConstant (
-                                                            LayoutPage* newPage,
-                                                            int lineIndex,
-                                                            int startIndex) const {
+int LayoutPage::insertInEditLine_linesManagedPageConstant (
+    LayoutPage* newPage,
+    int lineIndex,
+    int startIndex) const {
+  int possibleNewEditLineIndex;
   shared_ptr<Line> lineManagedPage = newPage->m_page->lineAt (lineIndex);
   if (lineManagedPage->length () - startIndex <= m_width) {
 
@@ -129,6 +146,7 @@ void LayoutPage::insertInEditLine_linesManagedPageConstant (
     newPage->m_editLine.reset (new LayoutLine (lineManagedPage->text (), lineIndex, startIndex, lineManagedPage->length () - startIndex));
     newPage->m_editLineIndex = m_editLineIndex;
     newPage->m_lineCount = m_lineCount;
+    possibleNewEditLineIndex = m_editLineIndex;
 
   } else {
 
@@ -146,15 +164,17 @@ void LayoutPage::insertInEditLine_linesManagedPageConstant (
     newLineArray[m_editLineIndex + deltaLineCount].reset (new LayoutLine (lineManagedPage->text (), lineIndex, startIndex, lineManagedPage->length () - startIndex));
 
     copyLines (newLineArray, m_editLineIndex + 1 + deltaLineCount, m_lines.get (), m_editLineIndex + 1, m_lineCount - (m_editLineIndex + 1));
+    possibleNewEditLineIndex = m_editLineIndex + deltaLineCount;
 
   }
+  return possibleNewEditLineIndex;
 }
 
-void LayoutPage::insertInEditLine_linesManagedPageIncreased (
-                                                             LayoutPage* newPage,
-                                                             int lineIndex,
-                                                             int startIndex,
-                                                             int deltaLineCountManagedPage) const {
+int LayoutPage::insertInEditLine_linesManagedPageIncreased (
+    LayoutPage* newPage,
+    int lineIndex,
+    int startIndex,
+    int deltaLineCountManagedPage) const {
   int deltaLineCount = partCount (newPage->m_page->lineAt (lineIndex)->length ()) - partCount (m_page->lineAt (lineIndex)->length ());
   for (int i = 0; i < deltaLineCountManagedPage; ++i) {
     deltaLineCount += partCount (newPage->m_page->lineAt (lineIndex + 1 + i)->length ());
@@ -188,6 +208,7 @@ void LayoutPage::insertInEditLine_linesManagedPageIncreased (
     }
     ++lineIndex;
   }
+  const int possibleNewEditLineIndex = m_editLineIndex + d - 1;
 
   shared_ptr<Line>* oldLineArray = m_lines.get ();
   int remainingLinesCount = m_lineCount - (m_editLineIndex + 1);
@@ -201,9 +222,14 @@ void LayoutPage::insertInEditLine_linesManagedPageIncreased (
             oldLine->length ()));
     ++d;
   }
+
+  return possibleNewEditLineIndex;
 }
 
 int LayoutPage::partCount (int length) const {
+  if (length == 0) {
+    return 1;
+  }
   int result = length / m_width;
   if (length % m_width > 0) {
     ++result;

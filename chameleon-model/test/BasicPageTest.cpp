@@ -17,7 +17,7 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include <natpad/util/string.h>
+#include <natpad/textmodel/Line.h>
 #include "BasicPageTest.h"
 
 #define protected public

@@ -35,12 +35,17 @@ public:
 
 private:
   static void copyLines (shared_ptr<Line>* dstArray, int dstIdx, shared_ptr<Line>* srcArray, int srcIdx, int length);
+  void determineNewCursorAndEditLine (
+      Cursor& cursor,
+      LayoutPage* newPage,
+      const Cursor& cursorManagedPage,
+      int possibleNewEditLineIndex) const;
   shared_ptr<const Page> insertInEditLine (Cursor& cursor, const String& text) const;
-  void insertInEditLine_linesManagedPageConstant (
+  int insertInEditLine_linesManagedPageConstant (
       LayoutPage* newPage,
       int lineIndex,
       int startIndex) const;
-  void insertInEditLine_linesManagedPageIncreased (
+  int insertInEditLine_linesManagedPageIncreased (
       LayoutPage* newPage,
       int lineIndex,
       int startIndex,
