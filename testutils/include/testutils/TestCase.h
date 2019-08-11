@@ -48,11 +48,17 @@ protected:
   void assertEquals (int lineNo, const std::string& expected, const String& actual);
   void assertEquals (int lineNo, const String& expected, const String& actual);
   void assertEquals (int lineNo, const void* expected, const void* actual);
+  void assertFalse (int lineNo, bool condition);
+  void assertNotNull (int lineNo, const void* ptr);
+  void assertNull (int lineNo, const void* ptr);
   void assertTrue (int lineNo, bool condition);
   void fail (int lineNo, const std::string& message);
 };
 
 #define assertEquals(expected, actual) assertEquals (__LINE__, expected, actual)
+#define assertFalse(condition) assertFalse (__LINE__, condition)
+#define assertNotNull(ptr) assertNotNull (__LINE__, ptr)
+#define assertNull(ptr) assertNull (__LINE__, ptr)
 #define assertTrue(condition) assertTrue (__LINE__, condition)
 #define FAIL(message) fail (__LINE__, message)
 

@@ -35,6 +35,10 @@ public:
   const Test* getTests (void) override;
 
   void testConstructor (void);
+  void testInsert_el_1 (void);
+  void testInsert_el_2 (void);
+  void testInsert_el_3 (void);
+  void testInsert_el_4 (void);
 };
 
 #endif

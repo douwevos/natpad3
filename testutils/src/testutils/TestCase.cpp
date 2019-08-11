@@ -22,6 +22,9 @@
 #include <testutils/TestCase.h>
 
 #undef assertEquals
+#undef assertFalse
+#undef assertNotNull
+#undef assertNull
 #undef assertTrue
 #undef fail
 
@@ -79,6 +82,24 @@ void TestCase::assertEquals (int lineNo, const String& expected, const String& a
 void TestCase::assertEquals (int lineNo, const void* expected, const void* actual) {
   if (expected != actual) {
     std::string str = "assertion failed (line " + std::to_string (lineNo) + "): pointers are not equal";
+    throw AssertionException (str);
+  }
+}
+
+void TestCase::assertFalse (int lineNo, bool condition) {
+  assertTrue (lineNo, !condition);
+}
+
+void TestCase::assertNotNull (int lineNo, const void* ptr) {
+  if (ptr == nullptr) {
+    std::string str = "assertion failed (line " + std::to_string (lineNo) + "): pointer null";
+    throw AssertionException (str);
+  }
+}
+
+void TestCase::assertNull (int lineNo, const void* ptr) {
+  if (ptr != nullptr) {
+    std::string str = "assertion failed (line " + std::to_string (lineNo) + "): pointer not null";
     throw AssertionException (str);
   }
 }
