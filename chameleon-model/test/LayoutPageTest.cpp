@@ -35,7 +35,10 @@ static const Test tests[] = {
   &LayoutPageTest::testInsert_el_1,
   &LayoutPageTest::testInsert_el_2,
   &LayoutPageTest::testInsert_el_3,
-  &LayoutPageTest::testInsert_el_4
+  &LayoutPageTest::testInsert_el_4,
+  &LayoutPageTest::testInsert_el_5,
+  &LayoutPageTest::testInsert_el_6,
+  &LayoutPageTest::testInsert_el_7
 };
 
 LayoutPageTest::LayoutPageTest (void) : TestCase ("LayoutPageTest") {
@@ -201,4 +204,92 @@ void  LayoutPageTest::testInsert_el_4 (void) {
   assertEquals (L("Vĳfde regeltje."), *newPage->lineAt (15)->text ());
   assertNotNull (newPage->m_editLine.get ());
   assertEquals (11, newPage->m_editLineIndex);
+}
+
+/*
+1. Adding to 'edit line'.
+2. Number of lines page increases.
+3. Number of lines managed page increases.
+4. Number of parts old original edit line constant.
+5. New page doesn't have m_editLine.
+ */
+void  LayoutPageTest::testInsert_el_5 (void) {
+  setTestName (__func__);
+
+  LayoutPage page (createBasicPage (), 15);
+  page.m_editLineIndex = 4;
+  page.m_editLine = page.m_lines.get ()[4];
+
+  Cursor cursor (4, 1);
+  shared_ptr<const Page> newPage = page.insert (cursor, L(". De snelle\nbruine vos springt over de\nluie hond."));
+  assertEquals (18, newPage->lineCount ());
+  assertEquals (7, cursor.line);
+  assertEquals (10, cursor.column);
+  assertEquals (L("Deze langste re"), *newPage->lineAt (1)->text ());
+  assertEquals (L("gel wordt gevol"), *newPage->lineAt (2)->text ());
+  assertEquals (L("gd door een leg"), *newPage->lineAt (3)->text ());
+  assertEquals (L("e. De snelle"), *newPage->lineAt (4)->text ());
+  assertEquals (L("bruine vos spri"), *newPage->lineAt (5)->text ());
+  assertEquals (L("ngt over de"), *newPage->lineAt (6)->text ());
+  assertEquals (L("luie hond. rege"), *newPage->lineAt (7)->text ());
+  assertEquals (L("l."), *newPage->lineAt (8)->text ());
+  assertEquals (L(""), *newPage->lineAt (9)->text ());
+  assertEquals (L("Vierde regeltje"), *newPage->lineAt (10)->text ());
+  assertEquals (L("."), *newPage->lineAt (11)->text ());
+  assertEquals (L("Vĳfde regeltje."), *newPage->lineAt (12)->text ());
+  assertNull (newPage->m_editLine.get ());
+}
+
+/*
+1. Adding to 'edit line'.
+2. Number of lines page constant.
+3. Number of lines managed page increases.
+4. Number of parts old original edit line decreases.
+5. New page also has m_editLine.
+ */
+void  LayoutPageTest::testInsert_el_6 (void) {
+  setTestName (__func__);
+
+  LayoutPage page (createBasicPage (), 15);
+  page.m_editLineIndex = 7;
+  page.m_editLine = page.m_lines.get ()[7];
+
+  Cursor cursor (7, 0);
+  shared_ptr<const Page> newPage = page.insert (cursor, L("\n"));
+  assertEquals (14, newPage->lineCount ());
+  assertEquals (7, cursor.line);
+  assertEquals (0, cursor.column);
+  assertEquals (L("Vierde regeltje"), *newPage->lineAt (6)->text ());
+  assertEquals (L("."), *newPage->lineAt (7)->text ());
+  assertEquals (L("Vĳfde regeltje."), *newPage->lineAt (8)->text ());
+  assertEquals (L("Zesde regel"), *newPage->lineAt (9)->text ());
+  assertNotNull (newPage->m_editLine.get ());
+  assertEquals (7, newPage->m_editLineIndex);
+}
+
+/*
+1. Adding to 'edit line'.
+2. Number of lines page increases.
+3. Number of lines managed page increases.
+4. Number of parts old original edit line constant.
+5. New page also has m_editLine.
+ */
+void  LayoutPageTest::testInsert_el_7 (void) {
+  setTestName (__func__);
+
+  LayoutPage page (createBasicPage (), 15);
+  page.m_editLineIndex = 8;
+  page.m_editLine = page.m_lines.get ()[8];
+
+  Cursor cursor (8, 0);
+  shared_ptr<const Page> newPage = page.insert (cursor, L("\n"));
+  assertEquals (15, newPage->lineCount ());
+  assertEquals (9, cursor.line);
+  assertEquals (0, cursor.column);
+  assertEquals (L("."), *newPage->lineAt (7)->text ());
+  assertEquals (L(""), *newPage->lineAt (8)->text ());
+  assertEquals (L("Vĳfde regeltje."), *newPage->lineAt (9)->text ());
+  assertEquals (L("Zesde regel"), *newPage->lineAt (10)->text ());
+  assertNotNull (newPage->m_editLine.get ());
+  assertEquals (9, newPage->m_editLineIndex);
 }

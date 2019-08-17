@@ -39,6 +39,9 @@ public:
   void testInsert_el_2 (void);
   void testInsert_el_3 (void);
   void testInsert_el_4 (void);
+  void testInsert_el_5 (void);
+  void testInsert_el_6 (void);
+  void testInsert_el_7 (void);
 };
 
 #endif
