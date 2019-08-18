@@ -34,23 +34,42 @@ public:
   shared_ptr<const Page> insert (Cursor& cursor, const String& text) const override;
 
 private:
+  int addNewLinesFromManagedPage (
+      shared_ptr<Line>* newLineArray,
+      int dstIndex,
+      shared_ptr<const Page> newManagedPage,
+      int srcIndex,
+      int deltaLineCountManagedPage) const;
+
+  shared_ptr<const Page> appendNewLines (Cursor& cursor, const String& text) const;
+
   static void copyLines (shared_ptr<Line>* dstArray, int dstIdx, shared_ptr<Line>* srcArray, int srcIdx, int length);
+
+  void copyLines (shared_ptr<Line>* dstArray, int dstIdx, int srcIdx, int length);
+
   void determineNewCursorAndEditLine (
       Cursor& cursor,
       LayoutPage* newPage,
       const Cursor& cursorManagedPage,
       int possibleNewEditLineIndex) const;
+
   shared_ptr<const Page> insertInEditLine (Cursor& cursor, const String& text) const;
+
   int insertInEditLine_linesManagedPageConstant (
       LayoutPage* newPage,
       int lineIndex,
       int startIndex) const;
+
   int insertInEditLine_linesManagedPageIncreased (
       LayoutPage* newPage,
       int lineIndex,
       int startIndex,
       int deltaLineCountManagedPage) const;
+
+  shared_ptr<const Page> insertInOtherLine (Cursor& cursor, const String& text) const;
+
   int partCount (int length) const;
+
   int partLength (int length, int startIndex) const;
 };
 

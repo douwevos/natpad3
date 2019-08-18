@@ -57,10 +57,43 @@ LayoutPage::LayoutPage (const shared_ptr<const Page>& page, int width) :
   }
 }
 
+int LayoutPage::addNewLinesFromManagedPage (
+    shared_ptr<Line>* newLineArray,
+    int dstIndex,
+    shared_ptr<const Page> newManagedPage,
+    int srcIndex,
+    int deltaLineCountManagedPage) const {
+  for (int i = 0; i < deltaLineCountManagedPage; ++i) {
+    shared_ptr<Line> lineMP = newManagedPage->lineAt (srcIndex);
+    int pc = partCount (lineMP->length ());
+    int startIndex = 0;
+    for (int j = 0; j < pc; ++j) {
+      int length = partLength (lineMP->length (), startIndex);
+      newLineArray[dstIndex].reset (new LayoutLine (lineMP->text (), srcIndex, startIndex, length));
+      startIndex += m_width;
+      ++dstIndex;
+    }
+    ++srcIndex;
+  }
+  return dstIndex;
+}
+
 /* srcArray and dstArray should not overlap.  */
 void LayoutPage::copyLines (shared_ptr<Line>* dstArray, int dstIdx, shared_ptr<Line>* srcArray, int srcIdx, int length) {
   for (int i = 0; i < length; ++i) {
     dstArray[dstIdx] = srcArray[srcIdx];
+    ++dstIdx;
+    ++srcIdx;
+  }
+}
+
+void LayoutPage::copyLines (shared_ptr<Line>* dstArray, int dstIdx, int srcIdx, int length) {
+  shared_ptr<Line>* srcArray = m_lines.get ();
+  for (int i = 0; i < length; ++i) {
+    if (srcIdx != m_editLineIndex)
+      dstArray[dstIdx] = srcArray[srcIdx];
+    else
+      dstArray[dstIdx] = m_editLine;
     ++dstIdx;
     ++srcIdx;
   }
@@ -93,19 +126,42 @@ shared_ptr<const Page> LayoutPage::insert (Cursor& cursor, const String& text) c
   }
 
   if (cursor.line >= m_lineCount) {
-  } else {
+    return appendNewLines (cursor, text);
   }
+  return insertInOtherLine (cursor, text);
+}
 
+/* POSTCONDITION: newPage->m_editLineIndex < newPage->m_lineCount  */
+shared_ptr<const Page> LayoutPage::appendNewLines (Cursor& cursor, const String& text) const {
   throw std::runtime_error ("(Part of) LayoutPage::insert not yet implemented.");
-  /* return newpage; */
+}
+
+shared_ptr<const Page> LayoutPage::insertInOtherLine (Cursor& cursor, const String& text) const {
+  throw std::runtime_error ("(Part of) LayoutPage::insert not yet implemented.");
+
+
+  LayoutPage* newPage = new LayoutPage (m_width);
+
+  LayoutLine* line = static_cast<LayoutLine*> (m_lines.get ()[cursor.line].get ());
+  const int lineIndex = line->lineIndex ();
+  int startIndex = line->startIndex ();
+
+  Cursor cursorManagedPage (lineIndex, cursor.column + startIndex);
+  shared_ptr<const Page> newManagedPage = m_page->insert (cursorManagedPage, text);
+  newPage->m_page = newManagedPage;
+
+
+
+  return shared_ptr<const Page> (newPage);
 }
 
 /* PRECONDITIONS:
    1. cursor.line == m_editLineIndex
-   2. If cursor.line is not the last line, then:
+   2. m_editLineIndex < m_lineCount
+   3. If cursor.line is not the last line, then:
       lineAt (cursor.line + 1)->lineIndex () == lineAt (cursor.line)->lineIndex () + 1
       That is, the next line refers to a different line in the managed page.
-   Condition 2 can only be met if we make sure that any m_editLine only refers to the
+   Condition 3 can only be met if we make sure that any m_editLine only refers to the
    last part of a line in the managed page.
  */
 shared_ptr<const Page> LayoutPage::insertInEditLine (Cursor& cursor, const String& text) const {
@@ -187,40 +243,29 @@ int LayoutPage::insertInEditLine_linesManagedPageIncreased (
 
   shared_ptr<Line> lineManagedPage = newPage->m_page->lineAt (lineIndex);
   int pc = partCount (lineManagedPage->length ()) - startIndex / m_width;
-  int d = 0;
+  int dstIndex = m_editLineIndex;
   for (int i = 0; i < pc; ++i) {
     int length = partLength (lineManagedPage->length (), startIndex);
-    newLineArray[m_editLineIndex + d].reset (new LayoutLine (lineManagedPage->text (), lineIndex, startIndex, length));
+    newLineArray[dstIndex].reset (new LayoutLine (lineManagedPage->text (), lineIndex, startIndex, length));
     startIndex += m_width;
-    ++d;
+    ++dstIndex;
   }
   ++lineIndex;
 
-  for (int i = 0; i < deltaLineCountManagedPage; ++i) {
-    lineManagedPage = newPage->m_page->lineAt (lineIndex);
-    pc = partCount (lineManagedPage->length ());
-    startIndex = 0;
-    for (int j = 0; j < pc; ++j) {
-      int length = partLength (lineManagedPage->length (), startIndex);
-      newLineArray[m_editLineIndex + d].reset (new LayoutLine (lineManagedPage->text (), lineIndex, startIndex, length));
-      startIndex += m_width;
-      ++d;
-    }
-    ++lineIndex;
-  }
-  const int possibleNewEditLineIndex = m_editLineIndex + d - 1;
+  dstIndex = addNewLinesFromManagedPage (newLineArray, dstIndex, newPage->m_page, lineIndex, deltaLineCountManagedPage);
+  const int possibleNewEditLineIndex = dstIndex - 1;
 
   shared_ptr<Line>* oldLineArray = m_lines.get ();
   int remainingLinesCount = m_lineCount - (m_editLineIndex + 1);
   for (int i = 0; i < remainingLinesCount; ++i) {
     LayoutLine* oldLine = static_cast<LayoutLine*> (oldLineArray[m_editLineIndex + 1 + i].get ());
-    newLineArray[m_editLineIndex + d].reset (
+    newLineArray[dstIndex].reset (
         new LayoutLine (
             oldLine->text (),
             oldLine->lineIndex () + deltaLineCountManagedPage,
             oldLine->startIndex (),
             oldLine->length ()));
-    ++d;
+    ++dstIndex;
   }
 
   return possibleNewEditLineIndex;
